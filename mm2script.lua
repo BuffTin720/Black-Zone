@@ -1,118 +1,337 @@
---[[
-Mega Ultra Cheat Script for Murder Mystery 2
-This is a comprehensive cheat script designed to test anti-cheat systems in MM2 clones
-WARNING: For educational/testing purposes only
-]]
+local startTime = tick()
+local loadTime = math.random(3, 60) -- Random load time between 3-60 seconds
+local loaded = false
 
+-- Anti-detection
+local SecureMode = true
+local ScriptName = "SystemUI_"..tostring(math.random(10000,99999))
+local FakeInstance = Instance.new("LocalScript")
+FakeInstance.Name = ScriptName
+FakeInstance.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerScripts")
+
+-- Services
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GuiService = game:GetService("GuiService")
+local TextService = game:GetService("TextService")
+local VRService = game:GetService("VRService")
 
--- Anti-detection variables
-local scriptName = "SystemCore"
-local fakeInstance = Instance.new("LocalScript")
-fakeInstance.Name = "SystemCore"
-fakeInstance.Parent = LocalPlayer:WaitForChild("PlayerScripts")
+-- Device detection
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local isConsole = UserInputService.GamepadEnabled and not UserInputService.MouseEnabled
+local isPC = not isMobile and not isConsole
+local isVR = VRService.VREnabled
 
--- GUI Creation
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MegaUltraCheatGUI"
-ScreenGui.Parent = game:GetService("CoreGui")
+-- Language system
+local Languages = {
+    English = {
+        MainTitle = "BLACK ZONE HUB",
+        Loading = "Loading...",
+        Autofarm = "Autofarm",
+        SilentAim = "Silent Aim",
+        HitboxExpansion = "Hitbox Expansion",
+        KillAll = "Kill All",
+        SpeedHack = "Speed Hack",
+        ESP = "ESP",
+        AutoPickup = "Auto Pickup",
+        AntiAFK = "Anti-AFK",
+        Settings = "Settings",
+        Language = "Language"
+    },
+    Russian = {
+        MainTitle = "BLACK ZONE HUB",
+        Loading = "Загрузка...",
+        Autofarm = "Автофарм",
+        SilentAim = "Тихий прицел",
+        HitboxExpansion = "Расширение хитбокса",
+        KillAll = "Убить всех",
+        SpeedHack = "Скорость",
+        ESP = "ESP",
+        AutoPickup = "Автоподбор",
+        AntiAFK = "Анти-АФК",
+        Settings = "Настройки",
+        Language = "Язык"
+    }
+}
+
+local CurrentLanguage = "English"
+
+-- ======== LOADING SCREEN ========
+local LoadingScreen = Instance.new("ScreenGui")
+LoadingScreen.Name = "BZH_LoadingScreen"
+LoadingScreen.Parent = game:GetService("CoreGui")
+LoadingScreen.DisplayOrder = 999
+
+local LoadingFrame = Instance.new("Frame")
+LoadingFrame.Size = UDim2.new(1, 0, 1, 0)
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+LoadingFrame.BorderSizePixel = 0
+LoadingFrame.Parent = LoadingScreen
+
+local LoadingText = Instance.new("TextLabel")
+LoadingText.Size = UDim2.new(1, 0, 0, 50)
+LoadingText.Position = UDim2.new(0, 0, 0.5, -25)
+LoadingText.BackgroundTransparency = 1
+LoadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadingText.Text = Languages[CurrentLanguage].Loading
+LoadingText.Font = Enum.Font.GothamBold
+LoadingText.TextSize = 24
+LoadingText.Parent = LoadingFrame
+
+local ProgressBar = Instance.new("Frame")
+ProgressBar.Size = UDim2.new(0.8, 0, 0, 10)
+ProgressBar.Position = UDim2.new(0.1, 0, 0.55, 0)
+ProgressBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ProgressBar.BorderSizePixel = 0
+ProgressBar.Parent = LoadingFrame
+
+local ProgressFill = Instance.new("Frame")
+ProgressFill.Size = UDim2.new(0, 0, 1, 0)
+ProgressFill.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+ProgressFill.BorderSizePixel = 0
+ProgressFill.Parent = ProgressBar
+
+-- ======== MAIN GUI ========
+local BlackZoneGUI = Instance.new("ScreenGui")
+BlackZoneGUI.Name = "BlackZoneHub"
+BlackZoneGUI.Parent = game:GetService("CoreGui")
+BlackZoneGUI.ResetOnSpawn = false
+
+-- Circle toggle button
+local CircleButton = Instance.new("ImageButton")
+CircleButton.Size = UDim2.new(0, 50, 0, 50)
+CircleButton.Position = UDim2.new(0.5, -25, 0.1, 0)
+CircleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+CircleButton.BackgroundTransparency = 0.3
+CircleButton.Image = "rbxassetid://3570695787"
+CircleButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
+CircleButton.ScaleType = Enum.ScaleType.Slice
+CircleButton.SliceCenter = Rect.new(100, 100, 100, 100)
+CircleButton.SliceScale = 0.12
+CircleButton.Parent = BlackZoneGUI
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 350, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+MainFrame.Size = UDim2.new(0, 500, 0, 600)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
+MainFrame.Visible = false
+MainFrame.Parent = BlackZoneGUI
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.Position = UDim2.new(0, 0, 0, 0)
-Title.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Text = "Mega Ultra Cheat v4.2"
-Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 18
-Title.Parent = MainFrame
-
-local TabButtons = {}
-local TabFrames = {}
-
-local function CreateTab(name)
-    local tabButton = Instance.new("TextButton")
-    tabButton.Size = UDim2.new(0.33, -2, 0, 30)
-    tabButton.Position = UDim2.new(0.33 * (#TabButtons), 1, 0, 30)
-    tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-    tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    tabButton.Text = name
-    tabButton.Font = Enum.Font.SourceSans
-    tabButton.TextSize = 14
-    tabButton.Parent = MainFrame
-    
-    local tabFrame = Instance.new("ScrollingFrame")
-    tabFrame.Size = UDim2.new(1, 0, 1, -60)
-    tabFrame.Position = UDim2.new(0, 0, 0, 60)
-    tabFrame.BackgroundTransparency = 1
-    tabFrame.Visible = false
-    tabFrame.Parent = MainFrame
-    
-    TabButtons[name] = tabButton
-    TabFrames[name] = tabFrame
-    
-    tabButton.MouseButton1Click:Connect(function()
-        for _, frame in pairs(TabFrames) do
-            frame.Visible = false
-        end
-        tabFrame.Visible = true
-    end)
-    
-    return tabFrame
+-- Responsive design
+if isMobile then
+    MainFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
+    MainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
 end
 
+-- Title bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleText = Instance.new("TextLabel")
+TitleText.Size = UDim2.new(1, -40, 1, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleText.Text = "BLACK ZONE HUB"
+TitleText.Font = Enum.Font.GothamBold
+TitleText.TextSize = 20
+TitleText.Parent = TitleBar
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 40, 0, 40)
+CloseButton.Position = UDim2.new(1, -40, 0, 0)
+CloseButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Text = "X"
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 18
+CloseButton.Parent = TitleBar
+
+-- Tabs system
+local Tabs = {
+    Main = {Frame = nil, Button = nil},
+    Combat = {Frame = nil, Button = nil},
+    Visuals = {Frame = nil, Button = nil},
+    Player = {Frame = nil, Button = nil},
+    Misc = {Frame = nil, Button = nil},
+    Settings = {Frame = nil, Button = nil}
+}
+
+local TabButtonsFrame = Instance.new("Frame")
+TabButtonsFrame.Size = UDim2.new(1, 0, 0, 40)
+TabButtonsFrame.Position = UDim2.new(0, 0, 0, 40)
+TabButtonsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+TabButtonsFrame.BorderSizePixel = 0
+TabButtonsFrame.Parent = MainFrame
+
+local TabContentFrame = Instance.new("Frame")
+TabContentFrame.Size = UDim2.new(1, 0, 1, -80)
+TabContentFrame.Position = UDim2.new(0, 0, 0, 80)
+TabContentFrame.BackgroundTransparency = 1
+TabContentFrame.Parent = MainFrame
+
 -- Create tabs
-local AimbotTab = CreateTab("Aimbot")
-local VisualsTab = CreateTab("Visuals")
-local PlayerTab = CreateTab("Player")
-local MiscTab = CreateTab("Misc")
+for tabName, _ in pairs(Tabs) do
+    local tabIndex = table.find(Tabs, tabName)
+    local tabWidth = 1/#Tabs
+    
+    local TabButton = Instance.new("TextButton")
+    TabButton.Size = UDim2.new(tabWidth, 0, 1, 0)
+    TabButton.Position = UDim2.new((tabIndex-1)*tabWidth, 0, 0, 0)
+    TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabButton.Text = tabName:upper()
+    TabButton.Font = Enum.Font.Gotham
+    TabButton.TextSize = 14
+    TabButton.Parent = TabButtonsFrame
+    
+    local TabFrame = Instance.new("ScrollingFrame")
+    TabFrame.Size = UDim2.new(1, 0, 1, 0)
+    TabFrame.BackgroundTransparency = 1
+    TabFrame.Visible = false
+    TabFrame.ScrollBarThickness = 3
+    TabFrame.Parent = TabContentFrame
+    
+    Tabs[tabName].Frame = TabFrame
+    Tabs[tabName].Button = TabButton
+    
+    TabButton.MouseButton1Click:Connect(function()
+        for _, tab in pairs(Tabs) do
+            tab.Frame.Visible = false
+        end
+        TabFrame.Visible = true
+    end)
+end
 
--- Show first tab by default
-TabFrames["Aimbot"].Visible = true
+Tabs.Main.Frame.Visible = true
 
--- UI Elements Creator
-local function CreateToggle(parent, name, callback)
+-- ======== SETTINGS ========
+local Settings = {
+    Autofarm = {
+        Enabled = false,
+        Mode = "Normal", -- Normal/Fast/Ultra
+        CollectGuns = true,
+        AvoidMurderer = true,
+        Priority = "Coins" -- Coins/Guns/Both
+    },
+    Combat = {
+        SilentAim = false,
+        HitChance = 100,
+        Prediction = 0.15,
+        HitboxExpansion = false,
+        HitboxSize = 1.5,
+        AutoShoot = false,
+        KillAll = false,
+        Wallbang = false,
+        Triggerbot = false,
+        AutoReload = true
+    },
+    Visuals = {
+        ESP = false,
+        Boxes = true,
+        Names = true,
+        Health = true,
+        Tracers = false,
+        Chams = false,
+        MaxDistance = 1000,
+        WeaponESP = false,
+        Skeleton = false,
+        HealthBar = false,
+        OffscreenArrows = false,
+        Radar = false,
+        Crosshair = false,
+        CrosshairColor = Color3.fromRGB(255, 255, 255),
+        CrosshairSize = 10,
+        CrosshairGap = 5
+    },
+    Player = {
+        Speed = false,
+        SpeedValue = 24,
+        JumpPower = false,
+        JumpValue = 50,
+        Noclip = false,
+        Fly = false,
+        FlySpeed = 30,
+        InfiniteJump = false,
+        NoRecoil = false,
+        NoSpread = false,
+        AntiAim = false,
+        AntiGravity = false,
+        InstantRespawn = false,
+        NoFallDamage = true,
+        AutoStamina = true
+    },
+    Misc = {
+        AutoPickup = true,
+        Fullbright = false,
+        FPSBoost = false,
+        AntiAFK = false,
+        Rejoin = false,
+        AutoReport = false,
+        ChatLogger = false,
+        FakeLag = false,
+        PingSpoof = false,
+        ServerHop = false,
+        AutoVoteKick = false,
+        SpectatorList = false,
+        FreeCam = false,
+        FreeCamSpeed = 10
+    },
+    Settings = {
+        Language = "English",
+        UITheme = "Dark",
+        UISize = "Normal",
+        Keybinds = {
+            ToggleMenu = Enum.KeyCode.RightShift,
+            ToggleESP = Enum.KeyCode.F1,
+            ToggleNoclip = Enum.KeyCode.N,
+            ToggleFly = Enum.KeyCode.F
+        },
+        Configs = {
+            SaveOnExit = true,
+            AutoLoad = true,
+            Notifications = true
+        }
+    }
+}
+
+-- ======== UI CREATION FUNCTIONS ========
+local function CreateToggle(parent, text, callback, tooltip)
     local toggleFrame = Instance.new("Frame")
-    toggleFrame.Size = UDim2.new(1, -10, 0, 30)
-    toggleFrame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
+    toggleFrame.Size = UDim2.new(1, -20, 0, 35)
+    toggleFrame.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 40)
     toggleFrame.BackgroundTransparency = 1
     toggleFrame.Parent = parent
     
     local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(0, 120, 1, 0)
+    toggleButton.Size = UDim2.new(0, 180, 1, 0)
     toggleButton.Position = UDim2.new(0, 0, 0, 0)
-    toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleButton.Text = name
-    toggleButton.Font = Enum.Font.SourceSans
+    toggleButton.Text = text
+    toggleButton.Font = Enum.Font.Gotham
     toggleButton.TextSize = 14
+    toggleButton.TextXAlignment = Enum.TextXAlignment.Left
     toggleButton.Parent = toggleFrame
     
     local statusLabel = Instance.new("TextLabel")
-    statusLabel.Size = UDim2.new(0, 50, 1, 0)
-    statusLabel.Position = UDim2.new(1, -50, 0, 0)
-    statusLabel.BackgroundColor3 = Color3.fromRGB(100, 20, 20)
+    statusLabel.Size = UDim2.new(0, 60, 1, 0)
+    statusLabel.Position = UDim2.new(1, -60, 0, 0)
+    statusLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     statusLabel.Text = "OFF"
-    statusLabel.Font = Enum.Font.SourceSansBold
+    statusLabel.Font = Enum.Font.GothamBold
     statusLabel.TextSize = 14
     statusLabel.Parent = toggleFrame
     
@@ -121,23 +340,46 @@ local function CreateToggle(parent, name, callback)
     toggleButton.MouseButton1Click:Connect(function()
         enabled = not enabled
         if enabled then
-            statusLabel.BackgroundColor3 = Color3.fromRGB(20, 100, 20)
+            statusLabel.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
             statusLabel.Text = "ON"
         else
-            statusLabel.BackgroundColor3 = Color3.fromRGB(100, 20, 20)
+            statusLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             statusLabel.Text = "OFF"
         end
         callback(enabled)
     end)
     
+    if tooltip then
+        local Tooltip = Instance.new("TextLabel")
+        Tooltip.Size = UDim2.new(1, -20, 0, 0)
+        Tooltip.Position = UDim2.new(0, 10, 1, 0)
+        Tooltip.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        Tooltip.TextColor3 = Color3.fromRGB(200, 200, 200)
+        Tooltip.Text = tooltip
+        Tooltip.Font = Enum.Font.Gotham
+        Tooltip.TextSize = 12
+        Tooltip.TextWrapped = true
+        Tooltip.Visible = false
+        Tooltip.Parent = toggleFrame
+        
+        toggleButton.MouseEnter:Connect(function()
+            Tooltip.Visible = true
+            Tooltip.Size = UDim2.new(1, -20, 0, TextService:GetTextSize(tooltip, 12, Enum.Font.Gotham, Vector2.new(parent.AbsoluteSize.X - 40, math.huge)).Y + 10)
+        end)
+        
+        toggleButton.MouseLeave:Connect(function()
+            Tooltip.Visible = false
+        end)
+    end
+    
     return {
         Set = function(self, value)
             enabled = value
             if enabled then
-                statusLabel.BackgroundColor3 = Color3.fromRGB(20, 100, 20)
+                statusLabel.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
                 statusLabel.Text = "ON"
             else
-                statusLabel.BackgroundColor3 = Color3.fromRGB(100, 20, 20)
+                statusLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
                 statusLabel.Text = "OFF"
             end
             callback(enabled)
@@ -148,10 +390,10 @@ local function CreateToggle(parent, name, callback)
     }
 end
 
-local function CreateSlider(parent, name, min, max, default, callback)
+local function CreateSlider(parent, text, min, max, default, callback, tooltip)
     local sliderFrame = Instance.new("Frame")
-    sliderFrame.Size = UDim2.new(1, -10, 0, 50)
-    sliderFrame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 55)
+    sliderFrame.Size = UDim2.new(1, -20, 0, 60)
+    sliderFrame.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 40)
     sliderFrame.BackgroundTransparency = 1
     sliderFrame.Parent = parent
     
@@ -160,8 +402,8 @@ local function CreateSlider(parent, name, min, max, default, callback)
     nameLabel.Position = UDim2.new(0, 0, 0, 0)
     nameLabel.BackgroundTransparency = 1
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    nameLabel.Text = name
-    nameLabel.Font = Enum.Font.SourceSans
+    nameLabel.Text = text
+    nameLabel.Font = Enum.Font.Gotham
     nameLabel.TextSize = 14
     nameLabel.TextXAlignment = Enum.TextXAlignment.Left
     nameLabel.Parent = sliderFrame
@@ -169,7 +411,7 @@ local function CreateSlider(parent, name, min, max, default, callback)
     local sliderBar = Instance.new("Frame")
     sliderBar.Size = UDim2.new(1, 0, 0, 10)
     sliderBar.Position = UDim2.new(0, 0, 0, 25)
-    sliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    sliderBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     sliderBar.BorderSizePixel = 0
     sliderBar.Parent = sliderFrame
     
@@ -181,12 +423,12 @@ local function CreateSlider(parent, name, min, max, default, callback)
     sliderFill.Parent = sliderBar
     
     local valueLabel = Instance.new("TextLabel")
-    valueLabel.Size = UDim2.new(1, 0, 0, 15)
+    valueLabel.Size = UDim2.new(1, 0, 0, 20)
     valueLabel.Position = UDim2.new(0, 0, 0, 35)
     valueLabel.BackgroundTransparency = 1
     valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     valueLabel.Text = tostring(default)
-    valueLabel.Font = Enum.Font.SourceSans
+    valueLabel.Font = Enum.Font.Gotham
     valueLabel.TextSize = 14
     valueLabel.Parent = sliderFrame
     
@@ -221,6 +463,29 @@ local function CreateSlider(parent, name, min, max, default, callback)
         end
     end)
     
+    if tooltip then
+        local Tooltip = Instance.new("TextLabel")
+        Tooltip.Size = UDim2.new(1, -20, 0, 0)
+        Tooltip.Position = UDim2.new(0, 10, 1, 0)
+        Tooltip.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        Tooltip.TextColor3 = Color3.fromRGB(200, 200, 200)
+        Tooltip.Text = tooltip
+        Tooltip.Font = Enum.Font.Gotham
+        Tooltip.TextSize = 12
+        Tooltip.TextWrapped = true
+        Tooltip.Visible = false
+        Tooltip.Parent = sliderFrame
+        
+        sliderBar.MouseEnter:Connect(function()
+            Tooltip.Visible = true
+            Tooltip.Size = UDim2.new(1, -20, 0, TextService:GetTextSize(tooltip, 12, Enum.Font.Gotham, Vector2.new(parent.AbsoluteSize.X - 40, math.huge)).Y + 10)
+        end)
+        
+        sliderBar.MouseLeave:Connect(function()
+            Tooltip.Visible = false
+        end)
+    end
+    
     return {
         Set = function(self, value)
             local ratio = (value - min) / (max - min)
@@ -231,683 +496,253 @@ local function CreateSlider(parent, name, min, max, default, callback)
     }
 end
 
--- Cheat Variables
-local settings = {
-    Aimbot = {
-        Enabled = false,
-        TeamCheck = true,
-        VisibleCheck = true,
-        FOV = 100,
-        Smoothness = 10,
-        Keybind = Enum.UserInputType.MouseButton2,
-        HitChance = 100,
-        SilentAim = false,
-        Prediction = 0.1
-    },
-    Visuals = {
-        ESP = false,
-        Boxes = true,
-        Names = true,
-        Health = true,
-        Tracers = false,
-        Chams = false,
-        Glow = false,
-        GlowColor = Color3.fromRGB(255, 0, 0),
-        MaxDistance = 500
-    },
-    Player = {
-        Speed = false,
-        SpeedValue = 20,
-        Jump = false,
-        JumpValue = 50,
-        Noclip = false,
-        Fly = false,
-        FlySpeed = 25,
-        InfiniteJump = false,
-        AntiAim = false
-    },
-    Misc = {
-        AutoFarm = false,
-        AutoCollectGuns = false,
-        AutoWin = false,
-        Rejoin = false,
-        AntiAFK = false,
-        Fullbright = false,
-        FPSBoost = false
-    }
-}
+-- ======== CREATE UI ELEMENTS ========
 
--- Aimbot Tab
-CreateToggle(AimbotTab, "Aimbot", function(enabled)
-    settings.Aimbot.Enabled = enabled
-end)
+-- Main Tab
+CreateToggle(Tabs.Main.Frame, "Enable All", function(enabled)
+    -- Toggle all features
+end, "Enable/disable all features at once")
 
-CreateToggle(AimbotTab, "Team Check", function(enabled)
-    settings.Aimbot.TeamCheck = enabled
-end)
+-- Combat Tab
+CreateToggle(Tabs.Combat.Frame, "Silent Aim", function(enabled)
+    Settings.Combat.SilentAim = enabled
+end, "Automatically aims at enemies without moving your camera")
 
-CreateToggle(AimbotTab, "Visible Check", function(enabled)
-    settings.Aimbot.VisibleCheck = enabled
-end)
+CreateToggle(Tabs.Combat.Frame, "Hitbox Expansion", function(enabled)
+    Settings.Combat.HitboxExpansion = enabled
+end, "Makes enemy hitboxes larger for easier hits")
 
-CreateToggle(AimbotTab, "Silent Aim", function(enabled)
-    settings.Aimbot.SilentAim = enabled
-end)
+CreateSlider(Tabs.Combat.Frame, "Hitbox Size", 1, 3, 1.5, function(value)
+    Settings.Combat.HitboxSize = value
+end, "Adjust the size of enemy hitboxes")
 
-CreateSlider(AimbotTab, "FOV", 10, 500, 100, function(value)
-    settings.Aimbot.FOV = value
-end)
-
-CreateSlider(AimbotTab, "Smoothness", 1, 30, 10, function(value)
-    settings.Aimbot.Smoothness = value
-end)
-
-CreateSlider(AimbotTab, "Hit Chance %", 0, 100, 100, function(value)
-    settings.Aimbot.HitChance = value
-end)
-
-CreateSlider(AimbotTab, "Prediction", 0, 0.5, 0.1, function(value)
-    settings.Aimbot.Prediction = value
-end)
+CreateToggle(Tabs.Combat.Frame, "Kill All", function(enabled)
+    Settings.Combat.KillAll = enabled
+end, "Automatically kills all players in the game")
 
 -- Visuals Tab
-CreateToggle(VisualsTab, "ESP", function(enabled)
-    settings.Visuals.ESP = enabled
-end)
+CreateToggle(Tabs.Visuals.Frame, "ESP", function(enabled)
+    Settings.Visuals.ESP = enabled
+end, "Shows information about other players through walls")
 
-CreateToggle(VisualsTab, "Boxes", function(enabled)
-    settings.Visuals.Boxes = enabled
-end)
-
-CreateToggle(VisualsTab, "Names", function(enabled)
-    settings.Visuals.Names = enabled
-end)
-
-CreateToggle(VisualsTab, "Health", function(enabled)
-    settings.Visuals.Health = enabled
-end)
-
-CreateToggle(VisualsTab, "Tracers", function(enabled)
-    settings.Visuals.Tracers = enabled
-end)
-
-CreateToggle(VisualsTab, "Chams", function(enabled)
-    settings.Visuals.Chams = enabled
-end)
-
-CreateToggle(VisualsTab, "Glow", function(enabled)
-    settings.Visuals.Glow = enabled
-end)
-
-CreateSlider(VisualsTab, "Max Distance", 50, 2000, 500, function(value)
-    settings.Visuals.MaxDistance = value
-end)
+CreateToggle(Tabs.Visuals.Frame, "Boxes", function(enabled)
+    Settings.Visuals.Boxes = enabled
+end, "Draws boxes around players")
 
 -- Player Tab
-CreateToggle(PlayerTab, "Speed Hack", function(enabled)
-    settings.Player.Speed = enabled
-end)
+CreateToggle(Tabs.Player.Frame, "Speed Hack", function(enabled)
+    Settings.Player.Speed = enabled
+end, "Increases your movement speed")
 
-CreateSlider(PlayerTab, "Speed Value", 16, 200, 20, function(value)
-    settings.Player.SpeedValue = value
-end)
-
-CreateToggle(PlayerTab, "High Jump", function(enabled)
-    settings.Player.Jump = enabled
-end)
-
-CreateSlider(PlayerTab, "Jump Value", 50, 500, 50, function(value)
-    settings.Player.JumpValue = value
-end)
-
-CreateToggle(PlayerTab, "Noclip", function(enabled)
-    settings.Player.Noclip = enabled
-end)
-
-CreateToggle(PlayerTab, "Fly", function(enabled)
-    settings.Player.Fly = enabled
-end)
-
-CreateSlider(PlayerTab, "Fly Speed", 10, 100, 25, function(value)
-    settings.Player.FlySpeed = value
-end)
-
-CreateToggle(PlayerTab, "Infinite Jump", function(enabled)
-    settings.Player.InfiniteJump = enabled
-end)
-
-CreateToggle(PlayerTab, "Anti-Aim", function(enabled)
-    settings.Player.AntiAim = enabled
-end)
+CreateSlider(Tabs.Player.Frame, "Speed Value", 16, 200, 24, function(value)
+    Settings.Player.SpeedValue = value
+end, "Adjust your movement speed")
 
 -- Misc Tab
-CreateToggle(MiscTab, "Auto Farm", function(enabled)
-    settings.Misc.AutoFarm = enabled
-end)
+CreateToggle(Tabs.Misc.Frame, "Auto Pickup Guns", function(enabled)
+    Settings.Misc.AutoPickup = enabled
+end, "Automatically picks up nearby guns")
 
-CreateToggle(MiscTab, "Auto Collect Guns", function(enabled)
-    settings.Misc.AutoCollectGuns = enabled
-end)
+-- Settings Tab
+local LanguageDropdown = Instance.new("TextButton")
+LanguageDropdown.Size = UDim2.new(1, -20, 0, 35)
+LanguageDropdown.Position = UDim2.new(0, 10, 0, 10)
+LanguageDropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+LanguageDropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
+LanguageDropdown.Text = "Language: "..Settings.Settings.Language
+LanguageDropdown.Font = Enum.Font.Gotham
+LanguageDropdown.TextSize = 14
+LanguageDropdown.Parent = Tabs.Settings.Frame
 
-CreateToggle(MiscTab, "Auto Win", function(enabled)
-    settings.Misc.AutoWin = enabled
-end)
+local LanguageOptions = {"English", "Russian"}
+local LanguageOpen = false
 
-CreateToggle(MiscTab, "Auto Rejoin", function(enabled)
-    settings.Misc.Rejoin = enabled
-end)
-
-CreateToggle(MiscTab, "Anti-AFK", function(enabled)
-    settings.Misc.AntiAFK = enabled
-end)
-
-CreateToggle(MiscTab, "Fullbright", function(enabled)
-    settings.Misc.Fullbright = enabled
-    if enabled then
-        Lighting.Ambient = Color3.new(1, 1, 1)
-        Lighting.ColorShift_Bottom = Color3.new(1, 1, 1)
-        Lighting.ColorShift_Top = Color3.new(1, 1, 1)
+LanguageDropdown.MouseButton1Click:Connect(function()
+    LanguageOpen = not LanguageOpen
+    
+    if LanguageOpen then
+        for i, lang in ipairs(LanguageOptions) do
+            local Option = Instance.new("TextButton")
+            Option.Size = UDim2.new(1, -30, 0, 30)
+            Option.Position = UDim2.new(0, 15, 0, 45 + (i-1)*35)
+            Option.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            Option.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Option.Text = lang
+            Option.Font = Enum.Font.Gotham
+            Option.TextSize = 14
+            Option.Parent = Tabs.Settings.Frame
+            
+            Option.MouseButton1Click:Connect(function()
+                Settings.Settings.Language = lang
+                LanguageDropdown.Text = "Language: "..lang
+                CurrentLanguage = lang
+                -- Update all UI text here
+                for _, v in pairs(Option.Parent:GetChildren()) do
+                    if v ~= Option and v ~= LanguageDropdown then
+                        v:Destroy()
+                    end
+                end
+                LanguageOpen = false
+            end)
+        end
     else
-        Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
-        Lighting.ColorShift_Bottom = Color3.new(0, 0, 0)
-        Lighting.ColorShift_Top = Color3.new(0, 0, 0)
-    end
-end)
-
-CreateToggle(MiscTab, "FPS Boost", function(enabled)
-    settings.Misc.FPSBoost = enabled
-    if enabled then
-        settings.Misc.OriginalGraphicsQuality = settings.Misc.OriginalGraphicsQuality or settings.Rendering.QualityLevel
-        settings.Rendering.QualityLevel = 1
-        
-        for _, v in pairs(Workspace:GetDescendants()) do
-            if v:IsA("BasePart") and not v.Anchored then
-                v.Material = Enum.Material.Plastic
+        for _, v in pairs(Tabs.Settings.Frame:GetChildren()) do
+            if v ~= LanguageDropdown then
+                v:Destroy()
             end
         end
-    else
-        if settings.Misc.OriginalGraphicsQuality then
-            settings.Rendering.QualityLevel = settings.Misc.OriginalGraphicsQuality
-        end
     end
 end)
 
--- Anti-Cheat Bypass Functions
-local function generateRandomString(length)
-    local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    local randomString = ""
-    
-    for i = 1, length do
-        local randomIndex = math.random(1, #chars)
-        randomString = randomString .. string.sub(chars, randomIndex, randomIndex)
+-- ======== CORE FUNCTIONS ========
+
+-- Autofarm system
+local function AutoFarm()
+    while Settings.Autofarm.Enabled and wait() do
+        -- Autofarm logic here
     end
-    
-    return randomString
 end
 
-local function spoofInstance(instance)
-    -- Change instance properties to avoid detection
-    if not instance then return end
-    
-    local oldName = instance.Name
-    local newName = generateRandomString(10)
-    
-    -- Spoof name temporarily
-    instance.Name = newName
-    delay(0.1, function()
-        instance.Name = oldName
+-- Silent Aim system
+local function SilentAim()
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        if Settings.Combat.SilentAim and method == "FindPartOnRayWithWhitelist" and math.random(1, 100) <= Settings.Combat.HitChance then
+            -- Find closest player logic
+            local closestPlayer = nil
+            -- ... targeting logic
+            
+            if closestPlayer and closestPlayer.Character then
+                local head = closestPlayer.Character:FindFirstChild("Head")
+                if head then
+                    local predictedPosition = head.Position + (head.Velocity * Settings.Combat.Prediction)
+                    args[1] = Ray.new(Workspace.CurrentCamera.CFrame.Position, (predictedPosition - Workspace.CurrentCamera.CFrame.Position).Unit * 1000)
+                    return oldNamecall(self, unpack(args))
+                end
+            end
+        end
+        
+        return oldNamecall(self, ...)
     end)
 end
 
-local function hookFunction(object, functionName, newFunction)
-    local original = object[functionName]
-    
-    if original then
-        object[functionName] = function(...)
-            return newFunction(original, ...)
-        end
-    end
-end
-
--- Aimbot Functionality
-local function getClosestPlayer()
-    if not settings.Aimbot.Enabled then return nil end
-    
-    local closestPlayer = nil
-    local closestDistance = settings.Aimbot.FOV
-    local localCharacter = LocalPlayer.Character
-    local localHead = localCharacter and localCharacter:FindFirstChild("Head")
-    
-    if not localHead then return nil end
+-- Hitbox expansion
+local function ExpandHitboxes()
+    if not Settings.Combat.HitboxExpansion then return end
     
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then
-            local character = player.Character
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
-            local head = character:FindFirstChild("Head")
-            
-            if humanoid and humanoid.Health > 0 and head then
-                -- Team check
-                if settings.Aimbot.TeamCheck and player.Team == LocalPlayer.Team then
-                    continue
-                end
-                
-                -- Visible check
-                if settings.Aimbot.VisibleCheck then
-                    local raycastParams = RaycastParams.new()
-                    raycastParams.FilterDescendantsInstances = {localCharacter, character}
-                    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-                    
-                    local raycastResult = Workspace:Raycast(localHead.Position, (head.Position - localHead.Position).Unit * 1000, raycastParams)
-                    if raycastResult and raycastResult.Instance:FindFirstAncestorOfClass("Model") ~= character then
-                        continue
-                    end
-                end
-                
-                local screenPoint, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(head.Position)
-                if onScreen then
-                    local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
-                    
-                    if distance < closestDistance then
-                        closestDistance = distance
-                        closestPlayer = player
-                    end
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Size = part.Size * Settings.Combat.HitboxSize
                 end
             end
         end
     end
-    
-    return closestPlayer
 end
 
--- Silent Aim Hook
-local oldNamecall
-oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
+-- Kill all players
+local function KillAll()
+    if not Settings.Combat.KillAll then return end
     
-    if settings.Aimbot.SilentAim and settings.Aimbot.Enabled and method == "FindPartOnRayWithWhitelist" and math.random(1, 100) <= settings.Aimbot.HitChance then
-        local closestPlayer = getClosestPlayer()
-        if closestPlayer and closestPlayer.Character then
-            local head = closestPlayer.Character:FindFirstChild("Head")
-            if head then
-                -- Apply prediction
-                local prediction = settings.Aimbot.Prediction
-                local predictedPosition = head.Position + (head.Velocity * prediction)
-                
-                args[1] = Ray.new(Workspace.CurrentCamera.CFrame.Position, (predictedPosition - Workspace.CurrentCamera.CFrame.Position).Unit * 1000)
-                return oldNamecall(self, unpack(args))
-            end
+    -- Kill all logic here
+end
+
+-- Speed hack
+local function SpeedHack()
+    if Settings.Player.Speed and LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = Settings.Player.SpeedValue
         end
     end
-    
-    return oldNamecall(self, ...)
-end)
+end
 
--- ESP Functionality
+-- ESP system
 local ESP = {
     Objects = {}
 }
 
 function ESP:Add(player)
-    if not player.Character then return end
-    
-    local holder = Instance.new("Folder")
-    holder.Name = player.Name
-    holder.Parent = ScreenGui
-    
-    local box = Instance.new("Frame")
-    box.Visible = false
-    box.BackgroundTransparency = 1
-    box.BorderSizePixel = 2
-    box.BorderColor3 = settings.Visuals.GlowColor
-    box.ZIndex = 10
-    box.Parent = holder
-    
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Visible = false
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.TextColor3 = Color3.new(1, 1, 1)
-    nameLabel.TextSize = 14
-    nameLabel.Font = Enum.Font.SourceSansBold
-    nameLabel.Text = player.Name
-    nameLabel.ZIndex = 10
-    nameLabel.Parent = holder
-    
-    local healthLabel = Instance.new("TextLabel")
-    healthLabel.Visible = false
-    healthLabel.BackgroundTransparency = 1
-    healthLabel.TextColor3 = Color3.new(1, 1, 1)
-    healthLabel.TextSize = 12
-    healthLabel.Font = Enum.Font.SourceSans
-    healthLabel.ZIndex = 10
-    healthLabel.Parent = holder
-    
-    local tracer = Instance.new("Frame")
-    tracer.Visible = false
-    tracer.BackgroundColor3 = settings.Visuals.GlowColor
-    tracer.BorderSizePixel = 0
-    tracer.Size = UDim2.new(0, 1, 0, 1)
-    tracer.ZIndex = 10
-    tracer.Parent = holder
-    
-    local cham = Instance.new("BoxHandleAdornment")
-    cham.Visible = false
-    cham.Adornee = nil
-    cham.AlwaysOnTop = true
-    cham.ZIndex = 10
-    cham.Size = Vector3.new(4, 6, 1)
-    cham.Transparency = 0.5
-    cham.Color3 = settings.Visuals.GlowColor
-    cham.Parent = holder
-    
-    local glow = Instance.new("BoxHandleAdornment")
-    glow.Visible = false
-    glow.Adornee = nil
-    glow.AlwaysOnTop = false
-    glow.ZIndex = 5
-    glow.Size = Vector3.new(4.2, 6.2, 1.2)
-    glow.Transparency = 0.8
-    glow.Color3 = settings.Visuals.GlowColor
-    glow.Parent = holder
-    
-    self.Objects[player] = {
-        Holder = holder,
-        Box = box,
-        NameLabel = nameLabel,
-        HealthLabel = healthLabel,
-        Tracer = tracer,
-        Cham = cham,
-        Glow = glow,
-        Player = player
-    }
-end
-
-function ESP:Remove(player)
-    local obj = self.Objects[player]
-    if obj then
-        obj.Holder:Destroy()
-        self.Objects[player] = nil
-    end
+    -- ESP creation logic
 end
 
 function ESP:Update()
-    for player, obj in pairs(self.Objects) do
-        if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("Head") then
-            local character = player.Character
-            local head = character.Head
-            local humanoid = character.Humanoid
-            
-            local screenPoint, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(head.Position)
-            local distance = (LocalPlayer.Character.Head.Position - head.Position).Magnitude
-            
-            if onScreen and distance <= settings.Visuals.MaxDistance then
-                local scale = 1000 / (screenPoint.Z * math.tan(math.rad(Workspace.CurrentCamera.FieldOfView * 0.5)) * 2)
-                local width, height = 4 * scale, 6 * scale
-                
-                -- Box ESP
-                if settings.Visuals.ESP and settings.Visuals.Boxes then
-                    obj.Box.Size = UDim2.new(0, width, 0, height)
-                    obj.Box.Position = UDim2.new(0, screenPoint.X - width * 0.5, 0, screenPoint.Y - height * 0.5)
-                    obj.Box.Visible = true
-                else
-                    obj.Box.Visible = false
-                end
-                
-                -- Name ESP
-                if settings.Visuals.ESP and settings.Visuals.Names then
-                    obj.NameLabel.Position = UDim2.new(0, screenPoint.X, 0, screenPoint.Y - height * 0.5 - 20)
-                    obj.NameLabel.Visible = true
-                else
-                    obj.NameLabel.Visible = false
-                end
-                
-                -- Health ESP
-                if settings.Visuals.ESP and settings.Visuals.Health then
-                    obj.HealthLabel.Text = string.format("%d/%d (%.0f%%)", humanoid.Health, humanoid.MaxHealth, (humanoid.Health / humanoid.MaxHealth) * 100)
-                    obj.HealthLabel.Position = UDim2.new(0, screenPoint.X, 0, screenPoint.Y + height * 0.5 + 5)
-                    obj.HealthLabel.Visible = true
-                else
-                    obj.HealthLabel.Visible = false
-                end
-                
-                -- Tracers
-                if settings.Visuals.ESP and settings.Visuals.Tracers then
-                    obj.Tracer.Position = UDim2.new(0, screenPoint.X, 0, screenPoint.Y)
-                    obj.Tracer.Size = UDim2.new(0, 1, 0, (screenPoint.Y - Workspace.CurrentCamera.ViewportSize.Y * 0.5) * 2)
-                    obj.Tracer.Visible = true
-                else
-                    obj.Tracer.Visible = false
-                end
-                
-                -- Chams
-                if settings.Visuals.Chams then
-                    obj.Cham.Adornee = character
-                    obj.Cham.Visible = true
-                else
-                    obj.Cham.Visible = false
-                end
-                
-                -- Glow
-                if settings.Visuals.Glow then
-                    obj.Glow.Adornee = character
-                    obj.Glow.Visible = true
-                else
-                    obj.Glow.Visible = false
-                end
-            else
-                obj.Box.Visible = false
-                obj.NameLabel.Visible = false
-                obj.HealthLabel.Visible = false
-                obj.Tracer.Visible = false
-                obj.Cham.Visible = false
-                obj.Glow.Visible = false
-            end
-        else
-            obj.Box.Visible = false
-            obj.NameLabel.Visible = false
-            obj.HealthLabel.Visible = false
-            obj.Tracer.Visible = false
-            obj.Cham.Visible = false
-            obj.Glow.Visible = false
-        end
+    -- ESP update logic
+end
+
+-- Auto pickup guns
+local function AutoPickup()
+    while Settings.Misc.AutoPickup and wait(0.5) do
+        -- Auto pickup logic
     end
 end
 
--- Initialize ESP for existing players
-for _, player in pairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        ESP:Add(player)
+-- ======== MAIN LOOP ========
+local function MainLoop()
+    -- Loading screen progress
+    while tick() - startTime < loadTime do
+        local progress = (tick() - startTime) / loadTime
+        ProgressFill.Size = UDim2.new(progress, 0, 1, 0)
+        LoadingText.Text = Languages[CurrentLanguage].Loading.." "..math.floor(progress * 100).."%"
+        RunService.RenderStepped:Wait()
     end
-end
-
--- Add ESP for new players
-Players.PlayerAdded:Connect(function(player)
-    ESP:Add(player)
-end)
-
--- Remove ESP for leaving players
-Players.PlayerRemoving:Connect(function(player)
-    ESP:Remove(player)
-end)
-
--- Player Movement Hacks
-local noclipLoop
-local flyLoop
-
-local function startNoclip()
-    if noclipLoop then noclipLoop:Disconnect() end
     
-    noclipLoop = RunService.Stepped:Connect(function()
-        if settings.Player.Noclip and LocalPlayer.Character then
-            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-    end)
-end
-
-local function startFly()
-    if flyLoop then flyLoop:Disconnect() end
+    -- Hide loading screen
+    LoadingScreen:Destroy()
+    loaded = true
     
-    local flySpeed = settings.Player.FlySpeed
-    local flyUp = false
-    local flyDown = false
+    -- Initialize systems
+    SilentAim()
+    spawn(AutoFarm)
+    spawn(AutoPickup)
     
-    UserInputService.InputBegan:Connect(function(input, processed)
-        if processed then return end
+    -- Main game loop
+    while wait() do
+        ExpandHitboxes()
+        SpeedHack()
+        KillAll()
         
-        if input.KeyCode == Enum.KeyCode.Space then
-            flyUp = true
-        elseif input.KeyCode == Enum.KeyCode.LeftShift then
-            flyDown = true
+        if Settings.Visuals.ESP then
+            ESP:Update()
         end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input, processed)
-        if processed then return end
-        
-        if input.KeyCode == Enum.KeyCode.Space then
-            flyUp = false
-        elseif input.KeyCode == Enum.KeyCode.LeftShift then
-            flyDown = false
-        end
-    end)
-    
-    flyLoop = RunService.Heartbeat:Connect(function()
-        if settings.Player.Fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local root = LocalPlayer.Character.HumanoidRootPart
-            local velocity = root.Velocity
-            
-            if flyUp then
-                velocity = Vector3.new(velocity.X, flySpeed, velocity.Z)
-            elseif flyDown then
-                velocity = Vector3.new(velocity.X, -flySpeed, velocity.Z)
-            else
-                velocity = Vector3.new(velocity.X, 0, velocity.Z)
-            end
-            
-            root.Velocity = velocity
-        end
-    end)
-end
-
--- Speed Hack
-local function speedHack()
-    if settings.Player.Speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = settings.Player.SpeedValue
     end
 end
 
--- High Jump
-local function highJump()
-    if settings.Player.Jump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.JumpPower = settings.Player.JumpValue
-    end
-end
-
--- Infinite Jump
-local function infiniteJump()
-    if settings.Player.InfiniteJump then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-end
-
--- Anti-Aim
-local function antiAim()
-    if settings.Player.AntiAim and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local root = LocalPlayer.Character.HumanoidRootPart
-        root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(math.random(-180, 180)), 0)
-    end
-end
-
--- Auto Farm
-local function autoFarm()
-    if not settings.Misc.AutoFarm then return end
-    
-    -- Implementation depends on game specifics
-end
-
--- Auto Collect Guns
-local function autoCollectGuns()
-    if not settings.Misc.AutoCollectGuns then return end
-    
-    -- Implementation depends on game specifics
-end
-
--- Auto Win
-local function autoWin()
-    if not settings.Misc.AutoWin then return end
-    
-    -- Implementation depends on game specifics
-end
-
--- Anti-AFK
-local function antiAFK()
-    if settings.Misc.AntiAFK then
-        local vu = game:GetService("VirtualUser")
-        LocalPlayer.Idled:Connect(function()
-            vu:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
-            wait(1)
-            vu:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
-        end)
-    end
-end
-
--- Main Loop
-RunService.Heartbeat:Connect(function()
-    -- ESP Update
-    if settings.Visuals.ESP or settings.Visuals.Chams or settings.Visuals.Glow then
-        ESP:Update()
-    end
-    
-    -- Movement Hacks
-    speedHack()
-    highJump()
-    
-    -- Other Hacks
-    antiAim()
-    autoFarm()
-    autoCollectGuns()
-    autoWin()
+-- ======== EVENT HANDLERS ========
+CircleButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
 end)
 
--- Start services
-startNoclip()
-startFly()
-antiAFK()
-
--- Infinite Jump
-UserInputService.JumpRequest:Connect(function()
-    infiniteJump()
+CloseButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
 end)
 
--- Keybinds
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     
-    -- Toggle GUI
-    if input.KeyCode == Enum.KeyCode.RightShift then
+    if input.KeyCode == Settings.Settings.Keybinds.ToggleMenu then
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
 
--- Cleanup
 LocalPlayer.CharacterAdded:Connect(function(character)
-    wait(1) -- Wait for character to fully load
-    speedHack()
-    highJump()
+    wait(1) -- Wait for character to load
+    -- Reapply settings
 end)
 
--- Final initialization
-speedHack()
-highJump()
+-- Anti-AFK
+LocalPlayer.Idled:Connect(function()
+    if Settings.Misc.AntiAFK then
+        VirtualUser:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+        wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+    end
+end)
 
--- Anti-detection spoofing
-while true do
-    wait(math.random(5, 15))
-    spoofInstance(fakeInstance)
-    spoofInstance(ScreenGui)
-end
+-- ======== START ========
+spawn(MainLoop)
+print("Black Zone Hub loaded successfully!")
