@@ -1,214 +1,154 @@
--- ======== PREMIUM CORE ========
-local _L = {
-    SecureBoot = true,
-    LicenseVerified = false,
-    HWID = game:GetService("RbxAnalyticsService"):GetClientId(),
-    SessionID = HttpService:GenerateGUID(false),
-    PremiumFeatures = {
-        "UltraSilent Aim", 
-        "Dynamic Hitbox", 
-        "Smart Autofarm",
-        "Priority Support",
-        "Weekly Updates"
-    }
-}
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local GuiService = game:GetService("GuiService")
+local TextService = game:GetService("TextService")
+local VRService = game:GetService("VRService")
 
--- ======== PREMIUM LOADER ========
-local startTime = tick()
-local loadTime = math.random(2, 10) -- Premium load time (2-10 seconds)
-local loaded = false
-local loadSteps = {
-    "Initializing secure environment...",
-    "Verifying game integrity...",
-    "Loading premium modules...",
-    "Building interface...",
-    "Finalizing setup..."
-}
+-- Device detection
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local isConsole = UserInputService.GamepadEnabled and not UserInputService.MouseEnabled
+local isPC = not isMobile and not isConsole
+local isVR = VRService.VREnabled
 
--- ======== PREMIUM UI ========
+-- ======== MAIN UI ========
 local BlackZoneUI = Instance.new("ScreenGui")
 BlackZoneUI.Name = "BlackZoneElite_"..tostring(math.random(100000,999999))
 BlackZoneUI.Parent = game:GetService("CoreGui")
 BlackZoneUI.ResetOnSpawn = false
-BlackZoneUI.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
--- Premium Loading Screen
-local LoadingFrame = Instance.new("Frame")
-LoadingFrame.Size = UDim2.new(1, 0, 1, 0)
-LoadingFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 10)
-LoadingFrame.BorderSizePixel = 0
-LoadingFrame.ZIndex = 999
-LoadingFrame.Parent = BlackZoneUI
+-- Circle toggle button
+local CircleButton = Instance.new("ImageButton")
+CircleButton.Size = UDim2.new(0, 50, 0, 50)
+CircleButton.Position = UDim2.new(0.5, -25, 0.1, 0)
+CircleButton.Image = "rbxassetid://3570695787" -- Circle image
+CircleButton.ScaleType = Enum.ScaleType.Slice
+CircleButton.SliceCenter = Rect.new(100, 100, 100, 100)
+CircleButton.SliceScale = 0.12
+CircleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+CircleButton.BackgroundTransparency = 0.3
+CircleButton.Parent = BlackZoneUI
 
-local LoadingLogo = Instance.new("ImageLabel")
-LoadingLogo.Size = UDim2.new(0, 150, 0, 150)
-LoadingLogo.Position = UDim2.new(0.5, -75, 0.4, -75)
-LoadingLogo.Image = "rbxassetid://12584587654" -- Premium logo
-LoadingLogo.BackgroundTransparency = 1
-LoadingLogo.Parent = LoadingFrame
+-- Main menu frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 550, 0, 650)
+MainFrame.Position = UDim2.new(0.5, -275, 0.5, -325)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+MainFrame.Parent = BlackZoneUI
 
-local LoadingText = Instance.new("TextLabel")
-LoadingText.Size = UDim2.new(1, 0, 0, 30)
-LoadingText.Position = UDim2.new(0, 0, 0.6, 0)
-LoadingText.BackgroundTransparency = 1
-LoadingText.TextColor3 = Color3.fromRGB(200, 200, 255)
-LoadingText.Text = loadSteps[1]
-LoadingText.Font = Enum.Font.GothamBold
-LoadingText.TextSize = 18
-LoadingText.Parent = LoadingFrame
+-- Responsive design
+if isMobile then
+    MainFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
+    MainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
+end
 
-local ProgressBar = Instance.new("Frame")
-ProgressBar.Size = UDim2.new(0.6, 0, 0, 8)
-ProgressBar.Position = UDim2.new(0.2, 0, 0.65, 0)
-ProgressBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-ProgressBar.BorderSizePixel = 0
-ProgressBar.Parent = LoadingFrame
-
-local ProgressFill = Instance.new("Frame")
-ProgressFill.Size = UDim2.new(0, 0, 1, 0)
-ProgressFill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-ProgressFill.BorderSizePixel = 0
-ProgressFill.Parent = ProgressBar
-
-local StatusText = Instance.new("TextLabel")
-StatusText.Size = UDim2.new(1, 0, 0, 20)
-StatusText.Position = UDim2.new(0, 0, 0.7, 0)
-StatusText.BackgroundTransparency = 1
-StatusText.TextColor3 = Color3.fromRGB(150, 150, 200)
-StatusText.Text = "Verifying premium license..."
-StatusText.Font = Enum.Font.Gotham
-StatusText.TextSize = 14
-StatusText.Parent = LoadingFrame
-
--- Premium License Verification (simulated)
-spawn(function()
-    for i = 1, 5 do
-        LoadingText.Text = loadSteps[i]
-        for p = 0, 100, math.random(5, 15) do
-            ProgressFill.Size = UDim2.new(p/100 * (i/5), 0, 1, 0)
-            wait(math.random() * 0.1)
-        end
-    end
-    
-    -- Simulate license verification
-    local verifyTime = math.random(500, 1500)/1000
-    local startVerify = tick()
-    while tick() - startVerify < verifyTime do
-        local progress = (tick() - startVerify)/verifyTime
-        StatusText.Text = string.format("License verification %.0f%% complete...", progress*100)
-        wait()
-    end
-    
-    _L.LicenseVerified = true
-    StatusText.Text = "Premium features unlocked!"
-    wait(0.5)
-    
-    -- Fade out loading screen
-    for i = 1, 20 do
-        LoadingFrame.BackgroundTransparency = i/20
-        LoadingLogo.ImageTransparency = i/20
-        LoadingText.TextTransparency = i/20
-        ProgressBar.BackgroundTransparency = i/20
-        ProgressFill.BackgroundTransparency = i/20
-        StatusText.TextTransparency = i/20
-        wait(0.02)
-    end
-    
-    LoadingFrame:Destroy()
-    loaded = true
-end)
-
--- ======== PREMIUM INTERFACE ========
-local MainContainer = Instance.new("Frame")
-MainContainer.Size = UDim2.new(0, 550, 0, 650)
-MainContainer.Position = UDim2.new(0.5, -275, 0.5, -325)
-MainContainer.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
-MainContainer.BorderSizePixel = 0
-MainContainer.Visible = false
-MainContainer.Parent = BlackZoneUI
-
--- Premium Title Bar
+-- Title bar
 local TitleBar = Instance.new("Frame")
 TitleBar.Size = UDim2.new(1, 0, 0, 40)
-TitleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 TitleBar.BorderSizePixel = 0
-TitleBar.Parent = MainContainer
+TitleBar.Parent = MainFrame
 
 local TitleText = Instance.new("TextLabel")
-TitleText.Size = UDim2.new(1, -100, 1, 0)
+TitleText.Size = UDim2.new(1, -40, 1, 0)
 TitleText.BackgroundTransparency = 1
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleText.Text = "BLACK ZONE ELITE"
 TitleText.Font = Enum.Font.GothamBold
-TitleText.TextSize = 18
-TitleText.TextXAlignment = Enum.TextXAlignment.Left
-TitleText.Position = UDim2.new(0, 15, 0, 0)
+TitleText.TextSize = 20
 TitleText.Parent = TitleBar
 
-local PremiumBadge = Instance.new("ImageLabel")
-PremiumBadge.Size = UDim2.new(0, 80, 0, 20)
-PremiumBadge.Position = UDim2.new(1, -90, 0.5, -10)
-PremiumBadge.Image = "rbxassetid://12584587655" -- Premium badge
-PremiumBadge.BackgroundTransparency = 1
-PremiumBadge.Parent = TitleBar
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 40, 0, 40)
+CloseButton.Position = UDim2.new(1, -40, 0, 0)
+CloseButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Text = "X"
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 18
+CloseButton.Parent = TitleBar
 
--- Premium Navigation
-local NavBar = Instance.new("Frame")
-NavBar.Size = UDim2.new(1, 0, 0, 50)
-NavBar.Position = UDim2.new(0, 0, 0, 40)
-NavBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-NavBar.BorderSizePixel = 0
-NavBar.Parent = MainContainer
-
-local NavButtons = {
-    {Name = "AIMBOT", Icon = "rbxassetid://12584587656"},
-    {Name = "VISUALS", Icon = "rbxassetid://12584587657"},
-    {Name = "PLAYER", Icon = "rbxassetid://12584587658"},
-    {Name = "AUTOMATION", Icon = "rbxassetid://12584587659"},
-    {Name = "SETTINGS", Icon = "rbxassetid://12584587660"}
+-- Navigation tabs
+local Tabs = {
+    Main = {Frame = nil, Button = nil},
+    Combat = {Frame = nil, Button = nil},
+    Visuals = {Frame = nil, Button = nil},
+    Player = {Frame = nil, Button = nil},
+    Automation = {Frame = nil, Button = nil},
+    Settings = {Frame = nil, Button = nil}
 }
 
-local TabFrames = {}
-for i, nav in ipairs(NavButtons) do
-    local btn = Instance.new("ImageButton")
-    btn.Size = UDim2.new(1/#NavButtons, -10, 1, -10)
-    btn.Position = UDim2.new((i-1)/#NavButtons, 5, 0, 5)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    btn.Image = nav.Icon
-    btn.ScaleType = Enum.ScaleType.Fit
-    btn.Parent = NavBar
+local TabButtonsFrame = Instance.new("Frame")
+TabButtonsFrame.Size = UDim2.new(1, 0, 0, 40)
+TabButtonsFrame.Position = UDim2.new(0, 0, 0, 40)
+TabButtonsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+TabButtonsFrame.BorderSizePixel = 0
+TabButtonsFrame.Parent = MainFrame
+
+local TabContentFrame = Instance.new("Frame")
+TabContentFrame.Size = UDim2.new(1, 0, 1, -80)
+TabContentFrame.Position = UDim2.new(0, 0, 0, 80)
+TabContentFrame.BackgroundTransparency = 1
+TabContentFrame.Parent = MainFrame
+
+-- Create tabs
+for tabName, _ in pairs(Tabs) do
+    local tabIndex = table.find(Tabs, tabName)
+    local tabWidth = 1/#Tabs
     
-    local tab = Instance.new("ScrollingFrame")
-    tab.Size = UDim2.new(1, 0, 1, -90)
-    tab.Position = UDim2.new(0, 0, 0, 90)
-    tab.BackgroundTransparency = 1
-    tab.Visible = false
-    tab.ScrollBarThickness = 3
-    tab.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
-    tab.Parent = MainContainer
+    local TabButton = Instance.new("TextButton")
+    TabButton.Size = UDim2.new(tabWidth, -2, 1, 0)
+    TabButton.Position = UDim2.new((tabIndex-1)*tabWidth, 1, 0, 0)
+    TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabButton.Text = tabName:upper()
+    TabButton.Font = Enum.Font.Gotham
+    TabButton.TextSize = 14
+    TabButton.Parent = TabButtonsFrame
     
-    TabFrames[nav.Name] = tab
+    local TabFrame = Instance.new("ScrollingFrame")
+    TabFrame.Size = UDim2.new(1, 0, 1, 0)
+    TabFrame.BackgroundTransparency = 1
+    TabFrame.Visible = false
+    TabFrame.ScrollBarThickness = 3
+    TabFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    TabFrame.Parent = TabContentFrame
     
-    btn.MouseButton1Click:Connect(function()
-        for _, f in pairs(TabFrames) do f.Visible = false end
-        tab.Visible = true
+    Tabs[tabName].Frame = TabFrame
+    Tabs[tabName].Button = TabButton
+    
+    TabButton.MouseButton1Click:Connect(function()
+        for _, tab in pairs(Tabs) do
+            tab.Frame.Visible = false
+        end
+        TabFrame.Visible = true
     end)
 end
-TabFrames["AIMBOT"].Visible = true
 
--- Premium Toggle Control
-local function CreatePremiumToggle(parent, text, state, callback)
+Tabs.Main.Frame.Visible = true
+
+-- ======== UI ELEMENTS ========
+local function CreateToggle(parent, text, state, callback)
     local toggle = Instance.new("Frame")
-    toggle.Size = UDim2.new(1, -20, 0, 40)
-    toggle.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 45)
-    toggle.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    toggle.Size = UDim2.new(1, -20, 0, 35)
+    toggle.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 40)
+    toggle.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
     toggle.BorderSizePixel = 0
     toggle.Parent = parent
     
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, -60, 1, 0)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Text = text
     label.Font = Enum.Font.Gotham
     label.TextSize = 14
@@ -217,18 +157,11 @@ local function CreatePremiumToggle(parent, text, state, callback)
     label.Parent = toggle
     
     local indicator = Instance.new("Frame")
-    indicator.Size = UDim2.new(0, 30, 0, 16)
-    indicator.Position = UDim2.new(1, -40, 0.5, -8)
+    indicator.Size = UDim2.new(0, 40, 0, 20)
+    indicator.Position = UDim2.new(1, -50, 0.5, -10)
     indicator.BackgroundColor3 = state and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
     indicator.BorderSizePixel = 0
     indicator.Parent = toggle
-    
-    local dot = Instance.new("Frame")
-    dot.Size = UDim2.new(0, 12, 0, 12)
-    dot.Position = UDim2.new(state and 1 or 0, -12, 0.5, -6)
-    dot.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-    dot.BorderSizePixel = 0
-    dot.Parent = indicator
     
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 1, 0)
@@ -236,42 +169,21 @@ local function CreatePremiumToggle(parent, text, state, callback)
     btn.Text = ""
     btn.Parent = toggle
     
-    local debounce = false
     btn.MouseButton1Click:Connect(function()
-        if debounce then return end
-        debounce = true
-        
         state = not state
-        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        
-        if state then
-            local tween1 = TweenService:Create(indicator, tweenInfo, {BackgroundColor3 = Color3.fromRGB(0, 170, 0)})
-            local tween2 = TweenService:Create(dot, tweenInfo, {Position = UDim2.new(1, -12, 0.5, -6)})
-            tween1:Play()
-            tween2:Play()
-        else
-            local tween1 = TweenService:Create(indicator, tweenInfo, {BackgroundColor3 = Color3.fromRGB(70, 70, 70)})
-            local tween2 = TweenService:Create(dot, tweenInfo, {Position = UDim2.new(0, 0, 0.5, -6)})
-            tween1:Play()
-            tween2:Play()
-        end
-        
+        indicator.BackgroundColor3 = state and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
         callback(state)
-        wait(0.2)
-        debounce = false
     end)
     
     return {
         SetState = function(self, newState)
             state = newState
             indicator.BackgroundColor3 = state and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
-            dot.Position = UDim2.new(state and 1 or 0, -12, 0.5, -6)
         end
     }
 end
 
--- Premium Slider Control
-local function CreatePremiumSlider(parent, text, min, max, default, callback)
+local function CreateSlider(parent, text, min, max, default, callback)
     local slider = Instance.new("Frame")
     slider.Size = UDim2.new(1, -20, 0, 70)
     slider.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 75)
@@ -281,7 +193,7 @@ local function CreatePremiumSlider(parent, text, min, max, default, callback)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 20)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Text = text
     label.Font = Enum.Font.Gotham
     label.TextSize = 14
@@ -291,7 +203,7 @@ local function CreatePremiumSlider(parent, text, min, max, default, callback)
     local track = Instance.new("Frame")
     track.Size = UDim2.new(1, 0, 0, 6)
     track.Position = UDim2.new(0, 0, 0, 30)
-    track.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    track.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
     track.BorderSizePixel = 0
     track.Parent = slider
     
@@ -333,7 +245,7 @@ local function CreatePremiumSlider(parent, text, min, max, default, callback)
         end
     end)
     
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
+    UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             update(input)
         end
@@ -347,12 +259,14 @@ local function CreatePremiumSlider(parent, text, min, max, default, callback)
     }
 end
 
--- ======== PREMIUM FEATURES ========
+-- ======== FEATURES CONFIG ========
 local Features = {
     Aimbot = {
         SilentAim = false,
         HitChance = 100,
         Prediction = 0.15,
+        HitboxExpansion = false,
+        HitboxSize = 1.5,
         AutoShoot = false,
         TargetPart = "Head",
         FOV = 120,
@@ -370,7 +284,9 @@ local Features = {
         MaxDistance = 1000,
         WeaponESP = false,
         Skeleton = false,
-        HealthBar = false
+        HealthBar = false,
+        Radar = false,
+        Crosshair = false
     },
     Player = {
         Speed = false,
@@ -382,7 +298,10 @@ local Features = {
         FlySpeed = 30,
         InfiniteJump = false,
         NoRecoil = false,
-        NoSpread = false
+        NoSpread = false,
+        AntiAim = false,
+        AntiGravity = false,
+        InstantRespawn = false
     },
     Automation = {
         Autofarm = false,
@@ -390,84 +309,127 @@ local Features = {
         CollectGuns = true,
         AutoPickup = true,
         KillAll = false,
-        AutoReport = false
+        AutoReport = false,
+        AutoVoteKick = false
     },
-    Settings = {
-        Language = "English",
-        Theme = "Dark",
-        Keybinds = {
-            Menu = Enum.KeyCode.RightShift,
-            Noclip = Enum.KeyCode.N,
-            Fly = Enum.KeyCode.F
-        }
+    Misc = {
+        Fullbright = false,
+        FPSBoost = false,
+        AntiAFK = false,
+        Rejoin = false,
+        ChatLogger = false,
+        FakeLag = false,
+        PingSpoof = false
     }
 }
 
--- ======== PREMIUM UI SETUP ========
+-- ======== UI SETUP ========
 
--- Aimbot Tab
-CreatePremiumToggle(TabFrames["AIMBOT"], "Silent Aim", Features.Aimbot.SilentAim, function(state)
+-- Main Tab
+CreateToggle(Tabs.Main.Frame, "Enable All Features", false, function(state)
+    -- Toggle all features
+end)
+
+-- Combat Tab
+local SilentAimToggle = CreateToggle(Tabs.Combat.Frame, "Silent Aim", Features.Aimbot.SilentAim, function(state)
     Features.Aimbot.SilentAim = state
 end)
 
-CreatePremiumSlider(TabFrames["AIMBOT"], "Hit Chance", 0, 100, Features.Aimbot.HitChance, function(value)
-    Features.Aimbot.HitChance = value
+local HitboxToggle = CreateToggle(Tabs.Combat.Frame, "Hitbox Expansion", Features.Aimbot.HitboxExpansion, function(state)
+    Features.Aimbot.HitboxExpansion = state
 end)
 
-CreatePremiumToggle(TabFrames["AIMBOT"], "Wallbang", Features.Aimbot.Wallbang, function(state)
-    Features.Aimbot.Wallbang = state
+local HitboxSlider = CreateSlider(Tabs.Combat.Frame, "Hitbox Size", 1, 3, Features.Aimbot.HitboxSize, function(value)
+    Features.Aimbot.HitboxSize = value
 end)
 
--- Visuals Tab
-CreatePremiumToggle(TabFrames["VISUALS"], "ESP", Features.Visuals.ESP, function(state)
-    Features.Visuals.ESP = state
-end)
-
-CreatePremiumToggle(TabFrames["VISUALS"], "Boxes", Features.Visuals.Boxes, function(state)
-    Features.Visuals.Boxes = state
-end)
-
--- Player Tab
-CreatePremiumToggle(TabFrames["PLAYER"], "Speed Hack", Features.Player.Speed, function(state)
-    Features.Player.Speed = state
-end)
-
-CreatePremiumSlider(TabFrames["PLAYER"], "Speed Value", 16, 200, Features.Player.SpeedValue, function(value)
-    Features.Player.SpeedValue = value
-end)
-
--- Automation Tab
-CreatePremiumToggle(TabFrames["AUTOMATION"], "Autofarm", Features.Automation.Autofarm, function(state)
-    Features.Automation.Autofarm = state
-end)
-
-CreatePremiumToggle(TabFrames["AUTOMATION"], "Kill All", Features.Automation.KillAll, function(state)
+local KillAllToggle = CreateToggle(Tabs.Combat.Frame, "Kill All Players", Features.Automation.KillAll, function(state)
     Features.Automation.KillAll = state
 end)
 
+-- Visuals Tab
+local ESPToggle = CreateToggle(Tabs.Visuals.Frame, "ESP", Features.Visuals.ESP, function(state)
+    Features.Visuals.ESP = state
+end)
+
+local BoxesToggle = CreateToggle(Tabs.Visuals.Frame, "Boxes", Features.Visuals.Boxes, function(state)
+    Features.Visuals.Boxes = state
+end)
+
+local RadarToggle = CreateToggle(Tabs.Visuals.Frame, "Radar", Features.Visuals.Radar, function(state)
+    Features.Visuals.Radar = state
+end)
+
+-- Player Tab
+local SpeedToggle = CreateToggle(Tabs.Player.Frame, "Speed Hack", Features.Player.Speed, function(state)
+    Features.Player.Speed = state
+end)
+
+local SpeedSlider = CreateSlider(Tabs.Player.Frame, "Speed Value", 16, 200, Features.Player.SpeedValue, function(value)
+    Features.Player.SpeedValue = value
+end)
+
+local FlyToggle = CreateToggle(Tabs.Player.Frame, "Fly", Features.Player.Fly, function(state)
+    Features.Player.Fly = state
+end)
+
+-- Automation Tab
+local AutofarmToggle = CreateToggle(Tabs.Automation.Frame, "Autofarm", Features.Automation.Autofarm, function(state)
+    Features.Automation.Autofarm = state
+end)
+
+local AutoPickupToggle = CreateToggle(Tabs.Automation.Frame, "Auto Pickup Guns", Features.Automation.AutoPickup, function(state)
+    Features.Automation.AutoPickup = state
+end)
+
 -- Settings Tab
-CreatePremiumToggle(TabFrames["SETTINGS"], "Premium Theme", true, function(state)
+local ThemeToggle = CreateToggle(Tabs.Settings.Frame, "Dark Theme", true, function(state)
     -- Theme toggle logic
 end)
 
--- ======== PREMIUM FUNCTIONALITY ========
+-- ======== CORE FUNCTIONS ========
 
--- Premium Silent Aim
-local function PremiumSilentAim()
+-- Silent Aim
+local function SilentAim()
     local oldNamecall
     oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
         local method = getnamecallmethod()
         local args = {...}
         
         if Features.Aimbot.SilentAim and method == "FindPartOnRayWithWhitelist" and math.random(1, 100) <= Features.Aimbot.HitChance then
-            -- Premium targeting logic
-            local target = FindBestTarget()
-            if target and target.Character then
-                local part = target.Character:FindFirstChild(Features.Aimbot.TargetPart)
-                if part then
-                    local predictedPos = part.Position + (part.Velocity * Features.Aimbot.Prediction)
-                    args[1] = Ray.new(Workspace.CurrentCamera.CFrame.Position, (predictedPos - Workspace.CurrentCamera.CFrame.Position).Unit * 1000)
-                    return oldNamecall(self, unpack(args))
+            local closestPlayer = nil
+            local closestDistance = Features.Aimbot.FOV
+            local localCharacter = LocalPlayer.Character
+            local localHead = localCharacter and localCharacter:FindFirstChild("Head")
+            
+            if localHead then
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        local character = player.Character
+                        local humanoid = character:FindFirstChildOfClass("Humanoid")
+                        local head = character:FindFirstChild("Head")
+                        
+                        if humanoid and humanoid.Health > 0 and head then
+                            local screenPoint, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(head.Position)
+                            if onScreen then
+                                local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+                                
+                                if distance < closestDistance then
+                                    closestDistance = distance
+                                    closestPlayer = player
+                                end
+                            end
+                        end
+                    end
+                end
+                
+                if closestPlayer and closestPlayer.Character then
+                    local head = closestPlayer.Character:FindFirstChild("Head")
+                    if head then
+                        local predictedPosition = head.Position + (head.Velocity * Features.Aimbot.Prediction)
+                        args[1] = Ray.new(Workspace.CurrentCamera.CFrame.Position, (predictedPosition - Workspace.CurrentCamera.CFrame.Position).Unit * 1000)
+                        return oldNamecall(self, unpack(args))
+                    end
                 end
             end
         end
@@ -476,85 +438,239 @@ local function PremiumSilentAim()
     end)
 end
 
--- Premium ESP System
+-- Hitbox Expansion
+local function ExpandHitboxes()
+    if not Features.Aimbot.HitboxExpansion then return end
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Size = part.Size * Features.Aimbot.HitboxSize
+                end
+            end
+        end
+    end
+end
+
+-- Speed Hack
+local function SpeedHack()
+    if Features.Player.Speed and LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = Features.Player.SpeedValue
+        end
+    end
+end
+
+-- Fly
+local function Fly()
+    if not Features.Player.Fly then return end
+    
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(0, 0, 0)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Parent = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    
+    local flyUp = false
+    local flyDown = false
+    
+    UserInputService.InputBegan:Connect(function(input, processed)
+        if processed then return end
+        
+        if input.KeyCode == Enum.KeyCode.Space then
+            flyUp = true
+        elseif input.KeyCode == Enum.KeyCode.LeftShift then
+            flyDown = true
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input, processed)
+        if processed then return end
+        
+        if input.KeyCode == Enum.KeyCode.Space then
+            flyUp = false
+        elseif input.KeyCode == Enum.KeyCode.LeftShift then
+            flyDown = false
+        end
+    end)
+    
+    RunService.Heartbeat:Connect(function()
+        if Features.Player.Fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local root = LocalPlayer.Character.HumanoidRootPart
+            local velocity = root.Velocity
+            
+            if flyUp then
+                velocity = Vector3.new(velocity.X, Features.Player.FlySpeed, velocity.Z)
+            elseif flyDown then
+                velocity = Vector3.new(velocity.X, -Features.Player.FlySpeed, velocity.Z)
+            else
+                velocity = Vector3.new(velocity.X, 0, velocity.Z)
+            end
+            
+            root.Velocity = velocity
+        end
+    end)
+end
+
+-- Autofarm
+local function Autofarm()
+    while Features.Automation.Autofarm do
+        -- Autofarm logic
+        wait()
+    end
+end
+
+-- Auto Pickup
+local function AutoPickup()
+    while Features.Automation.AutoPickup do
+        -- Auto pickup logic
+        wait(0.5)
+    end
+end
+
+-- Kill All
+local function KillAll()
+    if not Features.Automation.KillAll then return end
+    
+    -- Kill all logic
+end
+
+-- ESP
 local ESP = {
     Objects = {}
 }
 
 function ESP:Add(player)
-    -- Premium ESP creation
+    if not player.Character then return end
+    
+    local holder = Instance.new("Folder")
+    holder.Name = player.Name
+    holder.Parent = BlackZoneUI
+    
+    local box = Instance.new("Frame")
+    box.Visible = false
+    box.BackgroundTransparency = 1
+    box.BorderSizePixel = 2
+    box.BorderColor3 = Color3.fromRGB(255, 50, 50)
+    box.ZIndex = 10
+    box.Parent = holder
+    
+    -- Other ESP elements...
+    
+    self.Objects[player] = {
+        Holder = holder,
+        Box = box,
+        Player = player
+    }
 end
 
 function ESP:Update()
-    -- Premium ESP update
-end
-
--- Premium Autofarm
-local function PremiumAutofarm()
-    while Features.Automation.Autofarm do
-        -- Premium farming logic
-        wait()
-    end
-end
-
--- Premium Kill All
-local function PremiumKillAll()
-    if Features.Automation.KillAll then
-        -- Premium kill all logic
-    end
-end
-
--- ======== PREMIUM CORE LOOP ========
-local function PremiumMain()
-    -- Initialize premium features
-    PremiumSilentAim()
+    if not Features.Visuals.ESP then return end
     
-    -- Main loop
-    while wait() do
-        -- Update features
-        if Features.Visuals.ESP then
-            ESP:Update()
-        end
-        
-        if Features.Player.Speed and LocalPlayer.Character then
-            local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = Features.Player.SpeedValue
+    for player, data in pairs(self.Objects) do
+        if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("Head") then
+            local character = player.Character
+            local head = character.Head
+            local humanoid = character.Humanoid
+            
+            local screenPoint, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(head.Position)
+            local distance = (LocalPlayer.Character.Head.Position - head.Position).Magnitude
+            
+            if onScreen and distance <= Features.Visuals.MaxDistance then
+                -- Update ESP elements
+                if Features.Visuals.Boxes then
+                    data.Box.Visible = true
+                    -- Position and size box
+                else
+                    data.Box.Visible = false
+                end
+            else
+                data.Box.Visible = false
             end
+        else
+            data.Box.Visible = false
         end
-        
-        PremiumKillAll()
     end
 end
 
--- ======== PREMIUM ACTIVATION ========
-local CircleButton = Instance.new("ImageButton")
-CircleButton.Size = UDim2.new(0, 50, 0, 50)
-CircleButton.Position = UDim2.new(0.5, -25, 0.1, 0)
-CircleButton.Image = "rbxassetid://12584587661" -- Premium circle icon
-CircleButton.BackgroundTransparency = 1
-CircleButton.Parent = BlackZoneUI
+-- Radar
+local function UpdateRadar()
+    if not Features.Visuals.Radar then return end
+    
+    -- Radar update logic
+end
 
-CircleButton.MouseButton1Click:Connect(function()
-    MainContainer.Visible = not MainContainer.Visible
+-- ======== INITIALIZATION ========
+
+-- Initialize ESP for all players
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        ESP:Add(player)
+    end
+end
+
+-- Add new players to ESP
+Players.PlayerAdded:Connect(function(player)
+    ESP:Add(player)
 end)
 
-game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+-- Remove leaving players from ESP
+Players.PlayerRemoving:Connect(function(player)
+    if ESP.Objects[player] then
+        ESP.Objects[player].Holder:Destroy()
+        ESP.Objects[player] = nil
+    end
+end)
+
+-- Initialize systems
+SilentAim()
+spawn(Fly)
+spawn(Autofarm)
+spawn(AutoPickup)
+
+-- ======== MAIN LOOP ========
+RunService.Heartbeat:Connect(function()
+    ExpandHitboxes()
+    SpeedHack()
+    KillAll()
+    ESP:Update()
+    UpdateRadar()
+end)
+
+-- ======== UI CONTROLS ========
+CircleButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     
-    if input.KeyCode == Features.Settings.Keybinds.Menu then
-        MainContainer.Visible = not MainContainer.Visible
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        MainFrame.Visible = not MainFrame.Visible
     end
 end)
 
--- Start premium system
-spawn(PremiumMain)
+-- Character added event
+LocalPlayer.CharacterAdded:Connect(function(character)
+    wait(1) -- Wait for character to load
+    -- Reapply movement hacks
+end)
 
--- Premium notification
-local function Notify(title, message, duration)
-    -- Premium notification system
-end
+-- Anti-AFK
+LocalPlayer.Idled:Connect(function()
+    if Features.Misc.AntiAFK then
+        VirtualUser:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+        wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+    end
+end)
 
-Notify("Black Zone Elite", "Premium cheat loaded successfully!", 5)
+-- Initial setup
+SpeedHack()
 
-print("Black Zone Elite initialized | Premium features active")
+print("Black Zone Elite loaded successfully!")
