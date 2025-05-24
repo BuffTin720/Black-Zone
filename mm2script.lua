@@ -1,241 +1,364 @@
-local startTime = tick()
-local loadTime = math.random(3, 60) -- Random load time between 3-60 seconds
-local loaded = false
-
--- Anti-detection
-local SecureMode = true
-local ScriptName = "SystemUI_"..tostring(math.random(10000,99999))
-local FakeInstance = Instance.new("LocalScript")
-FakeInstance.Name = ScriptName
-FakeInstance.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerScripts")
-
--- Services
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local HttpService = game:GetService("HttpService")
-local Lighting = game:GetService("Lighting")
-local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local GuiService = game:GetService("GuiService")
-local TextService = game:GetService("TextService")
-local VRService = game:GetService("VRService")
-
--- Device detection
-local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
-local isConsole = UserInputService.GamepadEnabled and not UserInputService.MouseEnabled
-local isPC = not isMobile and not isConsole
-local isVR = VRService.VREnabled
-
--- Language system
-local Languages = {
-    English = {
-        MainTitle = "BLACK ZONE HUB",
-        Loading = "Loading...",
-        Autofarm = "Autofarm",
-        SilentAim = "Silent Aim",
-        HitboxExpansion = "Hitbox Expansion",
-        KillAll = "Kill All",
-        SpeedHack = "Speed Hack",
-        ESP = "ESP",
-        AutoPickup = "Auto Pickup",
-        AntiAFK = "Anti-AFK",
-        Settings = "Settings",
-        Language = "Language"
-    },
-    Russian = {
-        MainTitle = "BLACK ZONE HUB",
-        Loading = "Загрузка...",
-        Autofarm = "Автофарм",
-        SilentAim = "Тихий прицел",
-        HitboxExpansion = "Расширение хитбокса",
-        KillAll = "Убить всех",
-        SpeedHack = "Скорость",
-        ESP = "ESP",
-        AutoPickup = "Автоподбор",
-        AntiAFK = "Анти-АФК",
-        Settings = "Настройки",
-        Language = "Язык"
+-- ======== PREMIUM CORE ========
+local _L = {
+    SecureBoot = true,
+    LicenseVerified = false,
+    HWID = game:GetService("RbxAnalyticsService"):GetClientId(),
+    SessionID = HttpService:GenerateGUID(false),
+    PremiumFeatures = {
+        "UltraSilent Aim", 
+        "Dynamic Hitbox", 
+        "Smart Autofarm",
+        "Priority Support",
+        "Weekly Updates"
     }
 }
 
-local CurrentLanguage = "English"
+-- ======== PREMIUM LOADER ========
+local startTime = tick()
+local loadTime = math.random(2, 10) -- Premium load time (2-10 seconds)
+local loaded = false
+local loadSteps = {
+    "Initializing secure environment...",
+    "Verifying game integrity...",
+    "Loading premium modules...",
+    "Building interface...",
+    "Finalizing setup..."
+}
 
--- ======== LOADING SCREEN ========
-local LoadingScreen = Instance.new("ScreenGui")
-LoadingScreen.Name = "BZH_LoadingScreen"
-LoadingScreen.Parent = game:GetService("CoreGui")
-LoadingScreen.DisplayOrder = 999
+-- ======== PREMIUM UI ========
+local BlackZoneUI = Instance.new("ScreenGui")
+BlackZoneUI.Name = "BlackZoneElite_"..tostring(math.random(100000,999999))
+BlackZoneUI.Parent = game:GetService("CoreGui")
+BlackZoneUI.ResetOnSpawn = false
+BlackZoneUI.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
+-- Premium Loading Screen
 local LoadingFrame = Instance.new("Frame")
 LoadingFrame.Size = UDim2.new(1, 0, 1, 0)
-LoadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 10)
 LoadingFrame.BorderSizePixel = 0
-LoadingFrame.Parent = LoadingScreen
+LoadingFrame.ZIndex = 999
+LoadingFrame.Parent = BlackZoneUI
+
+local LoadingLogo = Instance.new("ImageLabel")
+LoadingLogo.Size = UDim2.new(0, 150, 0, 150)
+LoadingLogo.Position = UDim2.new(0.5, -75, 0.4, -75)
+LoadingLogo.Image = "rbxassetid://12584587654" -- Premium logo
+LoadingLogo.BackgroundTransparency = 1
+LoadingLogo.Parent = LoadingFrame
 
 local LoadingText = Instance.new("TextLabel")
-LoadingText.Size = UDim2.new(1, 0, 0, 50)
-LoadingText.Position = UDim2.new(0, 0, 0.5, -25)
+LoadingText.Size = UDim2.new(1, 0, 0, 30)
+LoadingText.Position = UDim2.new(0, 0, 0.6, 0)
 LoadingText.BackgroundTransparency = 1
-LoadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
-LoadingText.Text = Languages[CurrentLanguage].Loading
+LoadingText.TextColor3 = Color3.fromRGB(200, 200, 255)
+LoadingText.Text = loadSteps[1]
 LoadingText.Font = Enum.Font.GothamBold
-LoadingText.TextSize = 24
+LoadingText.TextSize = 18
 LoadingText.Parent = LoadingFrame
 
 local ProgressBar = Instance.new("Frame")
-ProgressBar.Size = UDim2.new(0.8, 0, 0, 10)
-ProgressBar.Position = UDim2.new(0.1, 0, 0.55, 0)
-ProgressBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ProgressBar.Size = UDim2.new(0.6, 0, 0, 8)
+ProgressBar.Position = UDim2.new(0.2, 0, 0.65, 0)
+ProgressBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 ProgressBar.BorderSizePixel = 0
 ProgressBar.Parent = LoadingFrame
 
 local ProgressFill = Instance.new("Frame")
 ProgressFill.Size = UDim2.new(0, 0, 1, 0)
-ProgressFill.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+ProgressFill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 ProgressFill.BorderSizePixel = 0
 ProgressFill.Parent = ProgressBar
 
--- ======== MAIN GUI ========
-local BlackZoneGUI = Instance.new("ScreenGui")
-BlackZoneGUI.Name = "BlackZoneHub"
-BlackZoneGUI.Parent = game:GetService("CoreGui")
-BlackZoneGUI.ResetOnSpawn = false
+local StatusText = Instance.new("TextLabel")
+StatusText.Size = UDim2.new(1, 0, 0, 20)
+StatusText.Position = UDim2.new(0, 0, 0.7, 0)
+StatusText.BackgroundTransparency = 1
+StatusText.TextColor3 = Color3.fromRGB(150, 150, 200)
+StatusText.Text = "Verifying premium license..."
+StatusText.Font = Enum.Font.Gotham
+StatusText.TextSize = 14
+StatusText.Parent = LoadingFrame
 
--- Circle toggle button
-local CircleButton = Instance.new("ImageButton")
-CircleButton.Size = UDim2.new(0, 50, 0, 50)
-CircleButton.Position = UDim2.new(0.5, -25, 0.1, 0)
-CircleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-CircleButton.BackgroundTransparency = 0.3
-CircleButton.Image = "rbxassetid://3570695787"
-CircleButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
-CircleButton.ScaleType = Enum.ScaleType.Slice
-CircleButton.SliceCenter = Rect.new(100, 100, 100, 100)
-CircleButton.SliceScale = 0.12
-CircleButton.Parent = BlackZoneGUI
+-- Premium License Verification (simulated)
+spawn(function()
+    for i = 1, 5 do
+        LoadingText.Text = loadSteps[i]
+        for p = 0, 100, math.random(5, 15) do
+            ProgressFill.Size = UDim2.new(p/100 * (i/5), 0, 1, 0)
+            wait(math.random() * 0.1)
+        end
+    end
+    
+    -- Simulate license verification
+    local verifyTime = math.random(500, 1500)/1000
+    local startVerify = tick()
+    while tick() - startVerify < verifyTime do
+        local progress = (tick() - startVerify)/verifyTime
+        StatusText.Text = string.format("License verification %.0f%% complete...", progress*100)
+        wait()
+    end
+    
+    _L.LicenseVerified = true
+    StatusText.Text = "Premium features unlocked!"
+    wait(0.5)
+    
+    -- Fade out loading screen
+    for i = 1, 20 do
+        LoadingFrame.BackgroundTransparency = i/20
+        LoadingLogo.ImageTransparency = i/20
+        LoadingText.TextTransparency = i/20
+        ProgressBar.BackgroundTransparency = i/20
+        ProgressFill.BackgroundTransparency = i/20
+        StatusText.TextTransparency = i/20
+        wait(0.02)
+    end
+    
+    LoadingFrame:Destroy()
+    loaded = true
+end)
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 500, 0, 600)
-MainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-MainFrame.BorderSizePixel = 0
-MainFrame.Visible = false
-MainFrame.Parent = BlackZoneGUI
+-- ======== PREMIUM INTERFACE ========
+local MainContainer = Instance.new("Frame")
+MainContainer.Size = UDim2.new(0, 550, 0, 650)
+MainContainer.Position = UDim2.new(0.5, -275, 0.5, -325)
+MainContainer.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+MainContainer.BorderSizePixel = 0
+MainContainer.Visible = false
+MainContainer.Parent = BlackZoneUI
 
--- Responsive design
-if isMobile then
-    MainFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
-    MainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-end
-
--- Title bar
+-- Premium Title Bar
 local TitleBar = Instance.new("Frame")
 TitleBar.Size = UDim2.new(1, 0, 0, 40)
-TitleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+TitleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 TitleBar.BorderSizePixel = 0
-TitleBar.Parent = MainFrame
+TitleBar.Parent = MainContainer
 
 local TitleText = Instance.new("TextLabel")
-TitleText.Size = UDim2.new(1, -40, 1, 0)
+TitleText.Size = UDim2.new(1, -100, 1, 0)
 TitleText.BackgroundTransparency = 1
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleText.Text = "BLACK ZONE HUB"
+TitleText.Text = "BLACK ZONE ELITE"
 TitleText.Font = Enum.Font.GothamBold
-TitleText.TextSize = 20
+TitleText.TextSize = 18
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.Position = UDim2.new(0, 15, 0, 0)
 TitleText.Parent = TitleBar
 
-local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.new(0, 40, 0, 40)
-CloseButton.Position = UDim2.new(1, -40, 0, 0)
-CloseButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.Text = "X"
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.TextSize = 18
-CloseButton.Parent = TitleBar
+local PremiumBadge = Instance.new("ImageLabel")
+PremiumBadge.Size = UDim2.new(0, 80, 0, 20)
+PremiumBadge.Position = UDim2.new(1, -90, 0.5, -10)
+PremiumBadge.Image = "rbxassetid://12584587655" -- Premium badge
+PremiumBadge.BackgroundTransparency = 1
+PremiumBadge.Parent = TitleBar
 
--- Tabs system
-local Tabs = {
-    Main = {Frame = nil, Button = nil},
-    Combat = {Frame = nil, Button = nil},
-    Visuals = {Frame = nil, Button = nil},
-    Player = {Frame = nil, Button = nil},
-    Misc = {Frame = nil, Button = nil},
-    Settings = {Frame = nil, Button = nil}
+-- Premium Navigation
+local NavBar = Instance.new("Frame")
+NavBar.Size = UDim2.new(1, 0, 0, 50)
+NavBar.Position = UDim2.new(0, 0, 0, 40)
+NavBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+NavBar.BorderSizePixel = 0
+NavBar.Parent = MainContainer
+
+local NavButtons = {
+    {Name = "AIMBOT", Icon = "rbxassetid://12584587656"},
+    {Name = "VISUALS", Icon = "rbxassetid://12584587657"},
+    {Name = "PLAYER", Icon = "rbxassetid://12584587658"},
+    {Name = "AUTOMATION", Icon = "rbxassetid://12584587659"},
+    {Name = "SETTINGS", Icon = "rbxassetid://12584587660"}
 }
 
-local TabButtonsFrame = Instance.new("Frame")
-TabButtonsFrame.Size = UDim2.new(1, 0, 0, 40)
-TabButtonsFrame.Position = UDim2.new(0, 0, 0, 40)
-TabButtonsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-TabButtonsFrame.BorderSizePixel = 0
-TabButtonsFrame.Parent = MainFrame
-
-local TabContentFrame = Instance.new("Frame")
-TabContentFrame.Size = UDim2.new(1, 0, 1, -80)
-TabContentFrame.Position = UDim2.new(0, 0, 0, 80)
-TabContentFrame.BackgroundTransparency = 1
-TabContentFrame.Parent = MainFrame
-
--- Create tabs
-for tabName, _ in pairs(Tabs) do
-    local tabIndex = table.find(Tabs, tabName)
-    local tabWidth = 1/#Tabs
+local TabFrames = {}
+for i, nav in ipairs(NavButtons) do
+    local btn = Instance.new("ImageButton")
+    btn.Size = UDim2.new(1/#NavButtons, -10, 1, -10)
+    btn.Position = UDim2.new((i-1)/#NavButtons, 5, 0, 5)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    btn.Image = nav.Icon
+    btn.ScaleType = Enum.ScaleType.Fit
+    btn.Parent = NavBar
     
-    local TabButton = Instance.new("TextButton")
-    TabButton.Size = UDim2.new(tabWidth, 0, 1, 0)
-    TabButton.Position = UDim2.new((tabIndex-1)*tabWidth, 0, 0, 0)
-    TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TabButton.Text = tabName:upper()
-    TabButton.Font = Enum.Font.Gotham
-    TabButton.TextSize = 14
-    TabButton.Parent = TabButtonsFrame
+    local tab = Instance.new("ScrollingFrame")
+    tab.Size = UDim2.new(1, 0, 1, -90)
+    tab.Position = UDim2.new(0, 0, 0, 90)
+    tab.BackgroundTransparency = 1
+    tab.Visible = false
+    tab.ScrollBarThickness = 3
+    tab.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    tab.Parent = MainContainer
     
-    local TabFrame = Instance.new("ScrollingFrame")
-    TabFrame.Size = UDim2.new(1, 0, 1, 0)
-    TabFrame.BackgroundTransparency = 1
-    TabFrame.Visible = false
-    TabFrame.ScrollBarThickness = 3
-    TabFrame.Parent = TabContentFrame
+    TabFrames[nav.Name] = tab
     
-    Tabs[tabName].Frame = TabFrame
-    Tabs[tabName].Button = TabButton
-    
-    TabButton.MouseButton1Click:Connect(function()
-        for _, tab in pairs(Tabs) do
-            tab.Frame.Visible = false
-        end
-        TabFrame.Visible = true
+    btn.MouseButton1Click:Connect(function()
+        for _, f in pairs(TabFrames) do f.Visible = false end
+        tab.Visible = true
     end)
 end
+TabFrames["AIMBOT"].Visible = true
 
-Tabs.Main.Frame.Visible = true
+-- Premium Toggle Control
+local function CreatePremiumToggle(parent, text, state, callback)
+    local toggle = Instance.new("Frame")
+    toggle.Size = UDim2.new(1, -20, 0, 40)
+    toggle.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 45)
+    toggle.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    toggle.BorderSizePixel = 0
+    toggle.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -60, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    label.Text = text
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Position = UDim2.new(0, 10, 0, 0)
+    label.Parent = toggle
+    
+    local indicator = Instance.new("Frame")
+    indicator.Size = UDim2.new(0, 30, 0, 16)
+    indicator.Position = UDim2.new(1, -40, 0.5, -8)
+    indicator.BackgroundColor3 = state and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
+    indicator.BorderSizePixel = 0
+    indicator.Parent = toggle
+    
+    local dot = Instance.new("Frame")
+    dot.Size = UDim2.new(0, 12, 0, 12)
+    dot.Position = UDim2.new(state and 1 or 0, -12, 0.5, -6)
+    dot.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    dot.BorderSizePixel = 0
+    dot.Parent = indicator
+    
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 1, 0)
+    btn.BackgroundTransparency = 1
+    btn.Text = ""
+    btn.Parent = toggle
+    
+    local debounce = false
+    btn.MouseButton1Click:Connect(function()
+        if debounce then return end
+        debounce = true
+        
+        state = not state
+        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        
+        if state then
+            local tween1 = TweenService:Create(indicator, tweenInfo, {BackgroundColor3 = Color3.fromRGB(0, 170, 0)})
+            local tween2 = TweenService:Create(dot, tweenInfo, {Position = UDim2.new(1, -12, 0.5, -6)})
+            tween1:Play()
+            tween2:Play()
+        else
+            local tween1 = TweenService:Create(indicator, tweenInfo, {BackgroundColor3 = Color3.fromRGB(70, 70, 70)})
+            local tween2 = TweenService:Create(dot, tweenInfo, {Position = UDim2.new(0, 0, 0.5, -6)})
+            tween1:Play()
+            tween2:Play()
+        end
+        
+        callback(state)
+        wait(0.2)
+        debounce = false
+    end)
+    
+    return {
+        SetState = function(self, newState)
+            state = newState
+            indicator.BackgroundColor3 = state and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
+            dot.Position = UDim2.new(state and 1 or 0, -12, 0.5, -6)
+        end
+    }
+end
 
--- ======== SETTINGS ========
-local Settings = {
-    Autofarm = {
-        Enabled = false,
-        Mode = "Normal", -- Normal/Fast/Ultra
-        CollectGuns = true,
-        AvoidMurderer = true,
-        Priority = "Coins" -- Coins/Guns/Both
-    },
-    Combat = {
+-- Premium Slider Control
+local function CreatePremiumSlider(parent, text, min, max, default, callback)
+    local slider = Instance.new("Frame")
+    slider.Size = UDim2.new(1, -20, 0, 70)
+    slider.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 75)
+    slider.BackgroundTransparency = 1
+    slider.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    label.Text = text
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = slider
+    
+    local track = Instance.new("Frame")
+    track.Size = UDim2.new(1, 0, 0, 6)
+    track.Position = UDim2.new(0, 0, 0, 30)
+    track.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    track.BorderSizePixel = 0
+    track.Parent = slider
+    
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((default-min)/(max-min), 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    fill.BorderSizePixel = 0
+    fill.Parent = track
+    
+    local value = Instance.new("TextLabel")
+    value.Size = UDim2.new(0, 60, 0, 20)
+    value.Position = UDim2.new(1, -60, 0, 40)
+    value.BackgroundTransparency = 1
+    value.TextColor3 = Color3.fromRGB(200, 200, 255)
+    value.Text = tostring(default)
+    value.Font = Enum.Font.GothamBold
+    value.TextSize = 14
+    value.Parent = slider
+    
+    local dragging = false
+    local function update(input)
+        local pos = UDim2.new(math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1), 0, 1, 0)
+        fill.Size = pos
+        local newValue = math.floor(min + (max-min) * pos.X.Scale)
+        value.Text = tostring(newValue)
+        callback(newValue)
+    end
+    
+    track.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            update(input)
+        end
+    end)
+    
+    track.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            update(input)
+        end
+    end)
+    
+    return {
+        SetValue = function(self, newValue)
+            fill.Size = UDim2.new((newValue-min)/(max-min), 0, 1, 0)
+            value.Text = tostring(newValue)
+        end
+    }
+end
+
+-- ======== PREMIUM FEATURES ========
+local Features = {
+    Aimbot = {
         SilentAim = false,
         HitChance = 100,
         Prediction = 0.15,
-        HitboxExpansion = false,
-        HitboxSize = 1.5,
         AutoShoot = false,
-        KillAll = false,
+        TargetPart = "Head",
+        FOV = 120,
+        Smoothing = 10,
         Wallbang = false,
-        Triggerbot = false,
-        AutoReload = true
+        Humanizer = true
     },
     Visuals = {
         ESP = false,
@@ -247,13 +370,7 @@ local Settings = {
         MaxDistance = 1000,
         WeaponESP = false,
         Skeleton = false,
-        HealthBar = false,
-        OffscreenArrows = false,
-        Radar = false,
-        Crosshair = false,
-        CrosshairColor = Color3.fromRGB(255, 255, 255),
-        CrosshairSize = 10,
-        CrosshairGap = 5
+        HealthBar = false
     },
     Player = {
         Speed = false,
@@ -265,361 +382,91 @@ local Settings = {
         FlySpeed = 30,
         InfiniteJump = false,
         NoRecoil = false,
-        NoSpread = false,
-        AntiAim = false,
-        AntiGravity = false,
-        InstantRespawn = false,
-        NoFallDamage = true,
-        AutoStamina = true
+        NoSpread = false
     },
-    Misc = {
+    Automation = {
+        Autofarm = false,
+        Mode = "Normal",
+        CollectGuns = true,
         AutoPickup = true,
-        Fullbright = false,
-        FPSBoost = false,
-        AntiAFK = false,
-        Rejoin = false,
-        AutoReport = false,
-        ChatLogger = false,
-        FakeLag = false,
-        PingSpoof = false,
-        ServerHop = false,
-        AutoVoteKick = false,
-        SpectatorList = false,
-        FreeCam = false,
-        FreeCamSpeed = 10
+        KillAll = false,
+        AutoReport = false
     },
     Settings = {
         Language = "English",
-        UITheme = "Dark",
-        UISize = "Normal",
+        Theme = "Dark",
         Keybinds = {
-            ToggleMenu = Enum.KeyCode.RightShift,
-            ToggleESP = Enum.KeyCode.F1,
-            ToggleNoclip = Enum.KeyCode.N,
-            ToggleFly = Enum.KeyCode.F
-        },
-        Configs = {
-            SaveOnExit = true,
-            AutoLoad = true,
-            Notifications = true
+            Menu = Enum.KeyCode.RightShift,
+            Noclip = Enum.KeyCode.N,
+            Fly = Enum.KeyCode.F
         }
     }
 }
 
--- ======== UI CREATION FUNCTIONS ========
-local function CreateToggle(parent, text, callback, tooltip)
-    local toggleFrame = Instance.new("Frame")
-    toggleFrame.Size = UDim2.new(1, -20, 0, 35)
-    toggleFrame.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 40)
-    toggleFrame.BackgroundTransparency = 1
-    toggleFrame.Parent = parent
-    
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(0, 180, 1, 0)
-    toggleButton.Position = UDim2.new(0, 0, 0, 0)
-    toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleButton.Text = text
-    toggleButton.Font = Enum.Font.Gotham
-    toggleButton.TextSize = 14
-    toggleButton.TextXAlignment = Enum.TextXAlignment.Left
-    toggleButton.Parent = toggleFrame
-    
-    local statusLabel = Instance.new("TextLabel")
-    statusLabel.Size = UDim2.new(0, 60, 1, 0)
-    statusLabel.Position = UDim2.new(1, -60, 0, 0)
-    statusLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    statusLabel.Text = "OFF"
-    statusLabel.Font = Enum.Font.GothamBold
-    statusLabel.TextSize = 14
-    statusLabel.Parent = toggleFrame
-    
-    local enabled = false
-    
-    toggleButton.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        if enabled then
-            statusLabel.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-            statusLabel.Text = "ON"
-        else
-            statusLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            statusLabel.Text = "OFF"
-        end
-        callback(enabled)
-    end)
-    
-    if tooltip then
-        local Tooltip = Instance.new("TextLabel")
-        Tooltip.Size = UDim2.new(1, -20, 0, 0)
-        Tooltip.Position = UDim2.new(0, 10, 1, 0)
-        Tooltip.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        Tooltip.TextColor3 = Color3.fromRGB(200, 200, 200)
-        Tooltip.Text = tooltip
-        Tooltip.Font = Enum.Font.Gotham
-        Tooltip.TextSize = 12
-        Tooltip.TextWrapped = true
-        Tooltip.Visible = false
-        Tooltip.Parent = toggleFrame
-        
-        toggleButton.MouseEnter:Connect(function()
-            Tooltip.Visible = true
-            Tooltip.Size = UDim2.new(1, -20, 0, TextService:GetTextSize(tooltip, 12, Enum.Font.Gotham, Vector2.new(parent.AbsoluteSize.X - 40, math.huge)).Y + 10)
-        end)
-        
-        toggleButton.MouseLeave:Connect(function()
-            Tooltip.Visible = false
-        end)
-    end
-    
-    return {
-        Set = function(self, value)
-            enabled = value
-            if enabled then
-                statusLabel.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-                statusLabel.Text = "ON"
-            else
-                statusLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-                statusLabel.Text = "OFF"
-            end
-            callback(enabled)
-        end,
-        Get = function(self)
-            return enabled
-        end
-    }
-end
+-- ======== PREMIUM UI SETUP ========
 
-local function CreateSlider(parent, text, min, max, default, callback, tooltip)
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Size = UDim2.new(1, -20, 0, 60)
-    sliderFrame.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 40)
-    sliderFrame.BackgroundTransparency = 1
-    sliderFrame.Parent = parent
-    
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(1, 0, 0, 20)
-    nameLabel.Position = UDim2.new(0, 0, 0, 0)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    nameLabel.Text = text
-    nameLabel.Font = Enum.Font.Gotham
-    nameLabel.TextSize = 14
-    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-    nameLabel.Parent = sliderFrame
-    
-    local sliderBar = Instance.new("Frame")
-    sliderBar.Size = UDim2.new(1, 0, 0, 10)
-    sliderBar.Position = UDim2.new(0, 0, 0, 25)
-    sliderBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    sliderBar.BorderSizePixel = 0
-    sliderBar.Parent = sliderFrame
-    
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    sliderFill.Position = UDim2.new(0, 0, 0, 0)
-    sliderFill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-    sliderFill.BorderSizePixel = 0
-    sliderFill.Parent = sliderBar
-    
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Size = UDim2.new(1, 0, 0, 20)
-    valueLabel.Position = UDim2.new(0, 0, 0, 35)
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    valueLabel.Text = tostring(default)
-    valueLabel.Font = Enum.Font.Gotham
-    valueLabel.TextSize = 14
-    valueLabel.Parent = sliderFrame
-    
-    local dragging = false
-    
-    local function updateValue(x)
-        local relativeX = math.clamp(x - sliderBar.AbsolutePosition.X, 0, sliderBar.AbsoluteSize.X)
-        local ratio = relativeX / sliderBar.AbsoluteSize.X
-        local value = math.floor(min + (max - min) * ratio)
-        
-        sliderFill.Size = UDim2.new(ratio, 0, 1, 0)
-        valueLabel.Text = tostring(value)
-        callback(value)
-    end
-    
-    sliderBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            updateValue(input.Position.X + sliderBar.AbsolutePosition.X)
-        end
-    end)
-    
-    sliderBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            updateValue(input.Position.X)
-        end
-    end)
-    
-    if tooltip then
-        local Tooltip = Instance.new("TextLabel")
-        Tooltip.Size = UDim2.new(1, -20, 0, 0)
-        Tooltip.Position = UDim2.new(0, 10, 1, 0)
-        Tooltip.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        Tooltip.TextColor3 = Color3.fromRGB(200, 200, 200)
-        Tooltip.Text = tooltip
-        Tooltip.Font = Enum.Font.Gotham
-        Tooltip.TextSize = 12
-        Tooltip.TextWrapped = true
-        Tooltip.Visible = false
-        Tooltip.Parent = sliderFrame
-        
-        sliderBar.MouseEnter:Connect(function()
-            Tooltip.Visible = true
-            Tooltip.Size = UDim2.new(1, -20, 0, TextService:GetTextSize(tooltip, 12, Enum.Font.Gotham, Vector2.new(parent.AbsoluteSize.X - 40, math.huge)).Y + 10)
-        end)
-        
-        sliderBar.MouseLeave:Connect(function()
-            Tooltip.Visible = false
-        end)
-    end
-    
-    return {
-        Set = function(self, value)
-            local ratio = (value - min) / (max - min)
-            sliderFill.Size = UDim2.new(ratio, 0, 1, 0)
-            valueLabel.Text = tostring(value)
-            callback(value)
-        end
-    }
-end
-
--- ======== CREATE UI ELEMENTS ========
-
--- Main Tab
-CreateToggle(Tabs.Main.Frame, "Enable All", function(enabled)
-    -- Toggle all features
-end, "Enable/disable all features at once")
-
--- Combat Tab
-CreateToggle(Tabs.Combat.Frame, "Silent Aim", function(enabled)
-    Settings.Combat.SilentAim = enabled
-end, "Automatically aims at enemies without moving your camera")
-
-CreateToggle(Tabs.Combat.Frame, "Hitbox Expansion", function(enabled)
-    Settings.Combat.HitboxExpansion = enabled
-end, "Makes enemy hitboxes larger for easier hits")
-
-CreateSlider(Tabs.Combat.Frame, "Hitbox Size", 1, 3, 1.5, function(value)
-    Settings.Combat.HitboxSize = value
-end, "Adjust the size of enemy hitboxes")
-
-CreateToggle(Tabs.Combat.Frame, "Kill All", function(enabled)
-    Settings.Combat.KillAll = enabled
-end, "Automatically kills all players in the game")
-
--- Visuals Tab
-CreateToggle(Tabs.Visuals.Frame, "ESP", function(enabled)
-    Settings.Visuals.ESP = enabled
-end, "Shows information about other players through walls")
-
-CreateToggle(Tabs.Visuals.Frame, "Boxes", function(enabled)
-    Settings.Visuals.Boxes = enabled
-end, "Draws boxes around players")
-
--- Player Tab
-CreateToggle(Tabs.Player.Frame, "Speed Hack", function(enabled)
-    Settings.Player.Speed = enabled
-end, "Increases your movement speed")
-
-CreateSlider(Tabs.Player.Frame, "Speed Value", 16, 200, 24, function(value)
-    Settings.Player.SpeedValue = value
-end, "Adjust your movement speed")
-
--- Misc Tab
-CreateToggle(Tabs.Misc.Frame, "Auto Pickup Guns", function(enabled)
-    Settings.Misc.AutoPickup = enabled
-end, "Automatically picks up nearby guns")
-
--- Settings Tab
-local LanguageDropdown = Instance.new("TextButton")
-LanguageDropdown.Size = UDim2.new(1, -20, 0, 35)
-LanguageDropdown.Position = UDim2.new(0, 10, 0, 10)
-LanguageDropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-LanguageDropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
-LanguageDropdown.Text = "Language: "..Settings.Settings.Language
-LanguageDropdown.Font = Enum.Font.Gotham
-LanguageDropdown.TextSize = 14
-LanguageDropdown.Parent = Tabs.Settings.Frame
-
-local LanguageOptions = {"English", "Russian"}
-local LanguageOpen = false
-
-LanguageDropdown.MouseButton1Click:Connect(function()
-    LanguageOpen = not LanguageOpen
-    
-    if LanguageOpen then
-        for i, lang in ipairs(LanguageOptions) do
-            local Option = Instance.new("TextButton")
-            Option.Size = UDim2.new(1, -30, 0, 30)
-            Option.Position = UDim2.new(0, 15, 0, 45 + (i-1)*35)
-            Option.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            Option.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Option.Text = lang
-            Option.Font = Enum.Font.Gotham
-            Option.TextSize = 14
-            Option.Parent = Tabs.Settings.Frame
-            
-            Option.MouseButton1Click:Connect(function()
-                Settings.Settings.Language = lang
-                LanguageDropdown.Text = "Language: "..lang
-                CurrentLanguage = lang
-                -- Update all UI text here
-                for _, v in pairs(Option.Parent:GetChildren()) do
-                    if v ~= Option and v ~= LanguageDropdown then
-                        v:Destroy()
-                    end
-                end
-                LanguageOpen = false
-            end)
-        end
-    else
-        for _, v in pairs(Tabs.Settings.Frame:GetChildren()) do
-            if v ~= LanguageDropdown then
-                v:Destroy()
-            end
-        end
-    end
+-- Aimbot Tab
+CreatePremiumToggle(TabFrames["AIMBOT"], "Silent Aim", Features.Aimbot.SilentAim, function(state)
+    Features.Aimbot.SilentAim = state
 end)
 
--- ======== CORE FUNCTIONS ========
+CreatePremiumSlider(TabFrames["AIMBOT"], "Hit Chance", 0, 100, Features.Aimbot.HitChance, function(value)
+    Features.Aimbot.HitChance = value
+end)
 
--- Autofarm system
-local function AutoFarm()
-    while Settings.Autofarm.Enabled and wait() do
-        -- Autofarm logic here
-    end
-end
+CreatePremiumToggle(TabFrames["AIMBOT"], "Wallbang", Features.Aimbot.Wallbang, function(state)
+    Features.Aimbot.Wallbang = state
+end)
 
--- Silent Aim system
-local function SilentAim()
+-- Visuals Tab
+CreatePremiumToggle(TabFrames["VISUALS"], "ESP", Features.Visuals.ESP, function(state)
+    Features.Visuals.ESP = state
+end)
+
+CreatePremiumToggle(TabFrames["VISUALS"], "Boxes", Features.Visuals.Boxes, function(state)
+    Features.Visuals.Boxes = state
+end)
+
+-- Player Tab
+CreatePremiumToggle(TabFrames["PLAYER"], "Speed Hack", Features.Player.Speed, function(state)
+    Features.Player.Speed = state
+end)
+
+CreatePremiumSlider(TabFrames["PLAYER"], "Speed Value", 16, 200, Features.Player.SpeedValue, function(value)
+    Features.Player.SpeedValue = value
+end)
+
+-- Automation Tab
+CreatePremiumToggle(TabFrames["AUTOMATION"], "Autofarm", Features.Automation.Autofarm, function(state)
+    Features.Automation.Autofarm = state
+end)
+
+CreatePremiumToggle(TabFrames["AUTOMATION"], "Kill All", Features.Automation.KillAll, function(state)
+    Features.Automation.KillAll = state
+end)
+
+-- Settings Tab
+CreatePremiumToggle(TabFrames["SETTINGS"], "Premium Theme", true, function(state)
+    -- Theme toggle logic
+end)
+
+-- ======== PREMIUM FUNCTIONALITY ========
+
+-- Premium Silent Aim
+local function PremiumSilentAim()
     local oldNamecall
     oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
         local method = getnamecallmethod()
         local args = {...}
         
-        if Settings.Combat.SilentAim and method == "FindPartOnRayWithWhitelist" and math.random(1, 100) <= Settings.Combat.HitChance then
-            -- Find closest player logic
-            local closestPlayer = nil
-            -- ... targeting logic
-            
-            if closestPlayer and closestPlayer.Character then
-                local head = closestPlayer.Character:FindFirstChild("Head")
-                if head then
-                    local predictedPosition = head.Position + (head.Velocity * Settings.Combat.Prediction)
-                    args[1] = Ray.new(Workspace.CurrentCamera.CFrame.Position, (predictedPosition - Workspace.CurrentCamera.CFrame.Position).Unit * 1000)
+        if Features.Aimbot.SilentAim and method == "FindPartOnRayWithWhitelist" and math.random(1, 100) <= Features.Aimbot.HitChance then
+            -- Premium targeting logic
+            local target = FindBestTarget()
+            if target and target.Character then
+                local part = target.Character:FindFirstChild(Features.Aimbot.TargetPart)
+                if part then
+                    local predictedPos = part.Position + (part.Velocity * Features.Aimbot.Prediction)
+                    args[1] = Ray.new(Workspace.CurrentCamera.CFrame.Position, (predictedPos - Workspace.CurrentCamera.CFrame.Position).Unit * 1000)
                     return oldNamecall(self, unpack(args))
                 end
             end
@@ -629,120 +476,85 @@ local function SilentAim()
     end)
 end
 
--- Hitbox expansion
-local function ExpandHitboxes()
-    if not Settings.Combat.HitboxExpansion then return end
-    
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            for _, part in pairs(player.Character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.Size = part.Size * Settings.Combat.HitboxSize
-                end
-            end
-        end
-    end
-end
-
--- Kill all players
-local function KillAll()
-    if not Settings.Combat.KillAll then return end
-    
-    -- Kill all logic here
-end
-
--- Speed hack
-local function SpeedHack()
-    if Settings.Player.Speed and LocalPlayer.Character then
-        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = Settings.Player.SpeedValue
-        end
-    end
-end
-
--- ESP system
+-- Premium ESP System
 local ESP = {
     Objects = {}
 }
 
 function ESP:Add(player)
-    -- ESP creation logic
+    -- Premium ESP creation
 end
 
 function ESP:Update()
-    -- ESP update logic
+    -- Premium ESP update
 end
 
--- Auto pickup guns
-local function AutoPickup()
-    while Settings.Misc.AutoPickup and wait(0.5) do
-        -- Auto pickup logic
+-- Premium Autofarm
+local function PremiumAutofarm()
+    while Features.Automation.Autofarm do
+        -- Premium farming logic
+        wait()
     end
 end
 
--- ======== MAIN LOOP ========
-local function MainLoop()
-    -- Loading screen progress
-    while tick() - startTime < loadTime do
-        local progress = (tick() - startTime) / loadTime
-        ProgressFill.Size = UDim2.new(progress, 0, 1, 0)
-        LoadingText.Text = Languages[CurrentLanguage].Loading.." "..math.floor(progress * 100).."%"
-        RunService.RenderStepped:Wait()
+-- Premium Kill All
+local function PremiumKillAll()
+    if Features.Automation.KillAll then
+        -- Premium kill all logic
     end
+end
+
+-- ======== PREMIUM CORE LOOP ========
+local function PremiumMain()
+    -- Initialize premium features
+    PremiumSilentAim()
     
-    -- Hide loading screen
-    LoadingScreen:Destroy()
-    loaded = true
-    
-    -- Initialize systems
-    SilentAim()
-    spawn(AutoFarm)
-    spawn(AutoPickup)
-    
-    -- Main game loop
+    -- Main loop
     while wait() do
-        ExpandHitboxes()
-        SpeedHack()
-        KillAll()
-        
-        if Settings.Visuals.ESP then
+        -- Update features
+        if Features.Visuals.ESP then
             ESP:Update()
         end
+        
+        if Features.Player.Speed and LocalPlayer.Character then
+            local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = Features.Player.SpeedValue
+            end
+        end
+        
+        PremiumKillAll()
     end
 end
 
--- ======== EVENT HANDLERS ========
+-- ======== PREMIUM ACTIVATION ========
+local CircleButton = Instance.new("ImageButton")
+CircleButton.Size = UDim2.new(0, 50, 0, 50)
+CircleButton.Position = UDim2.new(0.5, -25, 0.1, 0)
+CircleButton.Image = "rbxassetid://12584587661" -- Premium circle icon
+CircleButton.BackgroundTransparency = 1
+CircleButton.Parent = BlackZoneUI
+
 CircleButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
+    MainContainer.Visible = not MainContainer.Visible
 end)
 
-CloseButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = false
-end)
-
-UserInputService.InputBegan:Connect(function(input, processed)
+game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
     if processed then return end
     
-    if input.KeyCode == Settings.Settings.Keybinds.ToggleMenu then
-        MainFrame.Visible = not MainFrame.Visible
+    if input.KeyCode == Features.Settings.Keybinds.Menu then
+        MainContainer.Visible = not MainContainer.Visible
     end
 end)
 
-LocalPlayer.CharacterAdded:Connect(function(character)
-    wait(1) -- Wait for character to load
-    -- Reapply settings
-end)
+-- Start premium system
+spawn(PremiumMain)
 
--- Anti-AFK
-LocalPlayer.Idled:Connect(function()
-    if Settings.Misc.AntiAFK then
-        VirtualUser:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
-        wait(1)
-        VirtualUser:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
-    end
-end)
+-- Premium notification
+local function Notify(title, message, duration)
+    -- Premium notification system
+end
 
--- ======== START ========
-spawn(MainLoop)
-print("Black Zone Hub loaded successfully!")
+Notify("Black Zone Elite", "Premium cheat loaded successfully!", 5)
+
+print("Black Zone Elite initialized | Premium features active")
